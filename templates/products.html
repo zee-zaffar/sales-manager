@@ -10,7 +10,7 @@
 {% if products|length > 0 %}
     <ul>
         {% for product in products %}
-            <li>{{ product.name }} - {{ product.unit_price }}</li>
+            <li>{{ product.code }} - {{ product.category }}</li>
         {% endfor %}
     </ul>
 {% else %}

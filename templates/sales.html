@@ -7,4 +7,14 @@
     THis is Sales page
 </div>
 
+{% if orders|length > 0 %}
+    <ul>
+        {% for order in orders %}
+            <li>{{ order.orderno }} - {{ order.orderdate }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No orders available.</p>
+{% endif %}
+
 {% endblock %}
