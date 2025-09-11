@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+     <title>{% block title %} {% endblock %}</title>
+</head>
+<body>
+    <nav>
+        <a href="/"><span>Home</span></a>
+        <a href="/suppliers"><span>Suppliers</span></a>
+        <a href="/products"><span>Products</span></a>
+        <a href="/sales"><span>Sales</span></a>
+        <a href="/inventory"><span>Inventory</span></a>
+    </nav>
+
+    {% block content %} {% endblock %}
+
+    <footer>
+        This is footer
+    </footer>
+    
+</body>
+</html>

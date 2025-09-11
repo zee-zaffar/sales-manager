@@ -1,0 +1,13 @@
+  nav{
+            background-color: rgb(197, 229, 100);
+            color: white;
+            display: flex;
+            justify-content: center;
+            gap: 7px;
+            
+        }
+
+        footer{
+            background-color: rgb(3, 59, 59);
+            color: white;
+        }

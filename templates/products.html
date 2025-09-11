@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %} Products {% endblock %}
+
+{% block content %}
+<div>
+    This is Product page
+</div>
+
+{% if products|length > 0 %}
+    <ul>
+        {% for product in products %}
+            <li>{{ product.name }} - {{ product.unit_price }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No products available.</p>
+{% endif %}
+
+{% endblock %}

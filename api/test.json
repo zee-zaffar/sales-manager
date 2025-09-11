@@ -1,0 +1,122 @@
+{
+    "receipt_id": 3758118341,
+    "receipt_type": 0,
+    "seller_user_id": 692362486,
+    "seller_email": "sales@danfay-esolutions.com",
+    "buyer_user_id": 9769339,
+    "name": "Josh Linder",
+    "status": "Partially Refunded",
+    "message_from_seller": "Thank you for your purchase and we greatly appreciate your support. As a thank you we would like to offer you 30% off on your next purchase. Please message us for your discount code.",
+    "message_from_buyer": "",
+    "is_shipped": "True",
+    "is_paid": "True",
+    "create_timestamp": 1754050355,
+    "created_timestamp": 1754050355,
+    "update_timestamp": 1756227053,
+    "updated_timestamp": 1756227053,
+    "gift_message": "",
+    "gift_sender": "",
+    "grandtotal": {
+        "amount": 4242,
+        "divisor": 100,
+        "currency_code": "USD"
+    },
+    "subtotal": {
+        "amount": 3992,
+        "divisor": 100,
+        "currency_code": "USD"
+    },
+    "total_price": {
+        "amount": 4990,
+        "divisor": 100,
+        "currency_code": "USD"
+    },
+    "total_shipping_cost": {
+        "amount": 0,
+        "divisor": 100,
+        "currency_code": "USD"
+    },
+    "total_tax_cost": {
+        "amount": 250,
+        "divisor": 100,
+        "currency_code": "USD"
+    },
+    "total_vat_cost": {
+        "amount": 0,
+        "divisor": 100,
+        "currency_code": "USD"
+    },
+    "discount_amt": {
+        "amount": 998,
+        "divisor": 100,
+        "currency_code": "USD"
+    },
+    "gift_wrap_price": {
+        "amount": 0,
+        "divisor": 100,
+        "currency_code": "USD"
+    },
+    "shipments": [
+        {
+            "receipt_shipping_id": 1398697857945,
+            "shipment_notification_timestamp": 1754150400,
+            "carrier_name": "USPS",
+            "tracking_code": "9434609206094262936460"
+        }
+    ],
+    "transactions": [
+        {
+            "transaction_id": 4674525984,
+            "title": "Marble grapes bunch, kitchen fruit display for home decor, onyx green artificial fruit decor for dining, housewarming handmade gift for her",
+            "description": "Welcome to our exquisite collection of imported handmade marble grapes! 🍇 Elevate your kitchen and dining room decor with these beautiful, one-of-a-kind pieces that add a touch of sophistication and charm to any space. It has a beautiful hand carved heart in the center. Beautiful decor piece or gift for your favorite friend or relative.\nOur skilled artisans meticulously handcraft each grape with love and attention to detail, resulting in a stunning work of art that will capture the admiration of all your guests. These grapes are not just decorative, they also symbolize abundance, prosperity, and a fruitful life.\n\nWhether you&#39;re searching for a thoughtful housewarming gift for a dear friend, a unique present for a special occasion, or simply want to add an elegant touch to your home, our marble grapes are the perfect choice!\n\nProduct Features:\nElegant Decor Piece: Adds a touch of sophistication and natural beauty to any room, enhancing the aesthetic appeal of your home.\n\nVersatile Placement: Perfect for use as a centerpiece on dining tables, coffee tables, or as a decorative accent on shelves, mantels, and countertops.\n\nHigh-Quality Craftsmanship: Handcrafted from premium marble, ensuring durability and a luxurious finish that stands the test of time.\n\nUnique Gift Idea: Makes an exceptional and memorable gift for housewarmings, weddings, anniversaries, and other special occasions.\n\nConversation Starter: Its unique and artistic design is sure to capture attention and spark conversations among guests.\n\nMaintenance-Free: Unlike real grapes, this decorative piece requires no upkeep, providing enduring beauty without the need for care.\n\nAdds Texture and Interest: The smooth, polished surface and intricate detailing of the marble grapes add texture and visual interest to your decor.\n\nEmbrace the artistry and craftsmanship of these exquisite marble grapes. Order now and treat yourself or a loved one to a gift that will be cherished for years to come. Transform any space into a haven of elegance with our stunning handmade marble grapes! 🎁🍇\n\nShipping:\nFast and reliable shipping\nShipped within 24 hours purchase\n\nWe pay special attention to having a strong communication throughout the entire order process to ensure you have an awesome buying experience and we can quickly react to any issues.",
+            "seller_user_id": 692362486,
+            "buyer_user_id": 9769339,
+            "create_timestamp": 1754050355,
+            "created_timestamp": 1754050355,
+            "paid_timestamp": 1754050379,
+            "shipped_timestamp": 1754144905,
+            "quantity": 2,
+            "listing_image_id": 6871143906,
+            "receipt_id": 3758118341,
+            "is_digital": False,
+            "file_data": "",
+            "listing_id": 1772969383,
+            "sku": "Shah-25-8",
+            "product_id": 21648827103,
+            "transaction_type": "listing",
+            "price": {
+                "amount": 2495,
+                "divisor": 100,
+                "currency_code": "USD"
+            },
+            "shipping_cost": {
+                "amount": 0,
+                "divisor": 100,
+                "currency_code": "USD"
+            },
+            "variations": [],
+            "product_data": [],
+            "shipping_profile_id": 246891876580,
+            "min_processing_days": 1,
+            "max_processing_days": 1,
+            "shipping_method": None,
+            "shipping_upgrade": "USPS Parcel Select Ground",
+            "expected_ship_date": 1754150400,
+            "buyer_coupon": 9.98,
+            "shop_coupon": 9.98
+        }
+    ],
+    "refunds": [
+        {
+            "reason": "Covered by Etsy",
+            "note_from_issuer": "",
+            "status": "SUCCESS",
+            "amount": {
+                "amount": 250,
+                "divisor": 100,
+                "currency_code": "USD"
+            },
+            "created_timestamp": 1756227053
+        }
+    ]
+}
