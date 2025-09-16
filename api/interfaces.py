@@ -34,7 +34,7 @@ class Receipt(BaseModel):
         extra = "allow"
 
 
-class AccessTokenResponse:
+class AccessTokenResponse(BaseModel):
     access_token: Optional[str] = None
     token_type: Optional[str] = None
     expires_in: Optional[int] = None
