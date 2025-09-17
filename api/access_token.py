@@ -26,7 +26,7 @@ def get_etsy_access_token(client_id, auth_code, code_verifier, redirect_uri):
         if response.status_code == 200:
            data = response.json()
            token = AccessTokenResponse(**data)
-           return token.access_token
+           return token
     except requests.RequestException as e:
         print(f"Error: {e}")
         return {"error": str(e)} 
@@ -43,4 +43,4 @@ if __name__ == "__main__":
         code_verifier= os.getenv("ETSY_CODE_VERIFIER"),
         redirect_uri= os.getenv("ETSY_REDIRECT_URI")
     )
-print(token_response)
+    print(f"Token Response:{token_response}")

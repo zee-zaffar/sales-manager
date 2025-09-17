@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 from database.products import get_products
 from database.orders import get_orders
+from business.orders import process_orders
 
 app = Flask(__name__)
 
@@ -19,9 +20,11 @@ def products():
 
 @app.route("/sales")
 def sales():
-    print(f"Orders fetched: {get_orders()}")
+    # Process receipts from file and fetch details
+    process_orders()
+     
+    # print(f"Orders fetched: {get_orders()}")
     return render_template("sales.html", orders = get_orders())
-   
 
 @app.route("/suppliers")
 def suppliers():
