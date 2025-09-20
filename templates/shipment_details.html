@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shipment Details</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Shipment Details for Shipment #{{ shipment.ID }}</h1>
+    <h2>Header</h2>
+    <ul>
+        <li><strong>Supplier Name:</strong> {{ shipment.SupplierName }}</li>
+        <li><strong>Shipment No:</strong> {{ shipment.ShipmentNo }}</li>
+        <li><strong>Date Received:</strong> {{ shipment.DateReceived }}</li>
+        <li><strong>Comments:</strong> {{ shipment.Comments }}</li>
+    </ul>
+    <h2>Details</h2>
+        <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Description</th>
+                <th>SKU</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detail in details %}
+            <tr>
+                <td>{{ detail.ID }}</td>
+                <td>{{ detail.Description }}</td>
+                <td>{{ detail.SKU }}</td>
+                <td>{{ detail.Quantity }}</td>
+                <td>{{ detail.UnitPrice }}</td>
+                <td>${{ '%.2f' % (detail.Quantity * detail.UnitPrice) }}</td>
+                <td>{{ detail.Comments }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    <h2>Payments</h2>
+        <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Shipment Header Id</th>
+                <th>Payment Date</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Fee</th>
+                <th>Total</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr>
+                <td>{{ payment.ID }}</td>
+                <td>{{ payment.ShipmentHeaderId }}</td>
+                <td>{{ payment.PaymentDate }}</td>
+                <td>{{ payment.Description }}</td>
+                <td>${{ '%.2f' % (payment.Amount) }}</td>
+                <td>${{ '%.2f' % (payment.Fee) }}</td>
+                <td>${{ '%.2f' % (payment.Amount + payment.Fee) }}</td>
+                <td>{{ payment.Comments }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+        <br>    
+    <a href="/shipments">Back to Shipments List</a>
+</body>
+</html>

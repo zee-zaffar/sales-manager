@@ -13,7 +13,7 @@ from interfaces import Total, Transaction, Receipt
 BASE_URL = "https://openapi.etsy.com/v3/application"
 
 
-def get_receipt(receipt_id: int, timeout: int = 10):
+def get_receipt(receipt_id: int, timeout: int = 10)-> Receipt:
     """
     Fetch a single receipt from the Etsy API v3.
 

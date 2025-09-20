@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Shipments</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>All Shipments</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Supplier Name</th>
+                <th>Shipment No</th>
+                <th>Date Received</th>
+                <th>Comments</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shipment in shipments %}
+            <tr>
+                <td>{{ shipment.ID }}</td>
+                <td>{{ shipment.SupplierName }}</td>
+                <td>{{ shipment.ShipmentNo }}</td>
+                <td>{{ shipment.DateReceived }}</td>
+                <td>{{ shipment.Comments }}</td>
+                <td><a href="/shipment/{{ shipment.ID }}">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
