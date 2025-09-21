@@ -6,7 +6,8 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Shipment Details for Shipment #{{ shipment.ID }}</h1>
+    <h1>Shipment Details for Shipment - {{ shipment.ShipmentNo }}</h1>
+    <a href="/shipment/{{ shipment.ID }}/payment/new" class="button">Add Payment</a>
     <h2>Header</h2>
     <ul>
         <li><strong>Supplier Name:</strong> {{ shipment.SupplierName }}</li>
