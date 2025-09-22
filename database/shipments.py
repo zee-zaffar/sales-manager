@@ -1,3 +1,4 @@
+from flask import jsonify
 import psycopg2
 from psycopg2 import sql
 from .db_session import create_session
@@ -75,7 +76,8 @@ def get_shipments():
             for row in cursor.fetchall()
         ]
         print(f"Total shipments found: {len(shipments)}")
-        return shipments
+        return jsonify(shipments)
+    
     except psycopg2.Error as db_error:
         print(f"Database Error: {db_error}")
 

@@ -1,12 +1,22 @@
+
+import os
+import sys
 from flask import Flask, flash, redirect, render_template, request, url_for
 from database.products import get_products
 from database.orders import get_orders
 from business.orders import process_orders
-from database.shipments import get_shipments, get_shipment_header, get_shipment_details, add_shipment_header, add_shipment_detail
+from database.shipments import get_shipment_header, get_shipment_details, add_shipment_header, add_shipment_detail
 from database.payments import get_payments_by_shipmentheader, add_payment
+import requests
+
+from dotenv import load_dotenv
+load_dotenv()
+
 app = Flask(__name__)
 app.secret_key = 'your-very-secret-key'  # Change this to a strong, random value in production
 
+sales_manager_api_url = os.getenv("SALES_MANAGER_API_URL")
+print(f"Sales Manager API URL: {sales_manager_api_url}")
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -34,7 +44,15 @@ def suppliers():
 
 @app.route("/shipments")
 def shipments():
-    return render_template("shipments_list.html", shipments = get_shipments())
+    try:
+        response = requests.get(f"{sales_manager_api_url}/shipments")
+        response.raise_for_status()
+        shipments = response.json()
+    except Exception as e:
+        print(f"Error fetching shipments: {e}")
+        shipments = []
+    print(f"Shipments fetched: {shipments}")
+    return render_template("shipments_list.html", shipments=shipments)
 
 @app.route("/shipment/<int:shipment_id>")
 def shipment_details(shipment_id):
@@ -85,15 +103,44 @@ def new_payment(shipment_id):
     return render_template('payment_entry.html', shipment_id=shipment_id)
 
 # Route to handle payment form submission
-@app.route('/shipment/<int:shipment_id>/payment/new', methods=['POST'])
-def submit_payment(shipment_id):
-    paymentdate = request.form.get('paymentdate')
-    description = request.form.get('description')
-    amount = request.form.get('amount')
-    fee = request.form.get('fee')
-    comments = request.form.get('comments')
+# @app.route('/shipment/<int:shipment_id>/payment/new', methods=['POST'])
+# def submit_payment(shipment_id):
+#     paymentdate = request.form.get('paymentdate')
+#     description = request.form.get('description')
+#     amount = request.form.get('amount')
+#     fee = request.form.get('fee')
+#     comments = request.form.get('comments')
+#     add_payment(shipment_id, paymentdate, description, amount, fee, comments)
+#     flash('Payment added successfully!')
+#     return redirect(url_for('shipment_details', shipment_id=shipment_id))
+
+@app.route('/shipments/<int:shipment_id>/payments/add', methods=['POST'])
+def add_payment_modal(shipment_id):
+    paymentdate = request.form.get('PaymentDate')
+    description = request.form.get('Description')
+    amount = request.form.get('Amount')
+    fee = request.form.get('Fee')
+    comments = request.form.get('Comments')
     add_payment(shipment_id, paymentdate, description, amount, fee, comments)
     flash('Payment added successfully!')
+    return redirect(url_for('shipment_details', shipment_id=shipment_id))
+
+@app.route('/shipments/<int:shipment_id>/details/add', methods=['POST'])
+def add_detail_modal(shipment_id):
+    description = request.form.get('Description')
+    sku = request.form.get('SKU')
+    quantity = request.form.get('Quantity')
+    unit_price = request.form.get('UnitPrice')
+    comments = request.form.get('Comments')
+    add_shipment_detail(
+        header_id=shipment_id,
+        description=description,
+        sku=sku,
+        quantity=int(quantity),
+        unit_price=float(unit_price),
+        comments=comments
+    )
+    flash('Shipment detail added successfully!')
     return redirect(url_for('shipment_details', shipment_id=shipment_id))
 
 if __name__ == "__main__":
