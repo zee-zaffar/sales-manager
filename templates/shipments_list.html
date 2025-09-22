@@ -1,14 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>All Shipments</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <h1>All Shipments</h1>
-    <a href="/shipment/new" class="button">Add New Shipment</a>
-    <table border="1">
+{% extends 'base.html' %}
+
+{% block title %} Products {% endblock %}
+
+{% block content %}
+
+<div class="bg-light p-5 rounded mb-4">
+    <h1>Shipments List</h1>
+    <a href="/shipment/new" class="btn btn-success mt-3">Add New Shipment</a>
+</div>
+<div class="container">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>ID</th>
@@ -22,15 +23,16 @@
         <tbody>
             {% for shipment in shipments %}
             <tr>
-                <td>{{ shipment.ID }}</td>
-                <td>{{ shipment.SupplierName }}</td>
-                <td>{{ shipment.ShipmentNo }}</td>
-                <td>{{ shipment.DateReceived }}</td>
-                <td>{{ shipment.Comments }}</td>
-                <td><a href="/shipment/{{ shipment.ID }}">View</a></td>
+                <td>{{ shipment.id }}</td>
+                <td>{{ shipment.suppliername }}</td>
+                <td>{{ shipment.shipmentno }}</td>
+                <td>{{ shipment.datereceived }}</td>
+                <td>{{ shipment.comments }}</td>
+                <td><a href="/shipment/{{ shipment.id }}">View</a></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-</body>
-</html>
+</div>
+
+{% endblock %}
