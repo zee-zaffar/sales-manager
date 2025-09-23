@@ -6,7 +6,7 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="mb-0">Shipment Details for Shipment #{{ shipment.ID }}</h1>
+        <h1 class="mb-0">Shipment Details for Shipment #{{ shipment.id }}</h1>
     </div>
     <div class="card mb-4">
         <div class="card-header bg-light d-flex justify-content-between align-items-center">
@@ -17,14 +17,14 @@
         <div class="modal fade" id="addShipmentDetailModal" tabindex="-1" aria-labelledby="addDetailModalLabel"
             aria-hidden="true">
             <div class="modal-dialog">
-                <form class="modal-content" method="post" action="/shipments/{{ shipment.ID }}/details/add">
+                <form class="modal-content" method="post" action="/shipments/{{ shipment.id }}/details/add">
                     <div class="modal-header">
                         <h5 class="modal-title" id="addDetailModalLabel">Add Shipment Detail for Shipment #{{
-                            shipment.ID }}</h5>
+                            shipment.id }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" name="ShipmentHeaderId" value="{{ shipment.ID }}">
+                        <input type="hidden" name="ShipmentHeaderId" value="{{ shipment.id }}">
                         <div class="mb-3">
                             <label for="detailDescription" class="form-label">Description</label>
                             <input id="detailDescription" name="Description" type="text" class="form-control"
@@ -92,13 +92,13 @@
                 <tbody>
                     {% for detail in details %}
                     <tr>
-                        <td>{{ detail.ID }}</td>
-                        <td>{{ detail.Description }}</td>
-                        <td>{{ detail.SKU }}</td>
-                        <td>{{ detail.Quantity }}</td>
-                        <td>${{ '%.2f' % detail.UnitPrice }}</td>
-                        <td>${{ '%.2f' % (detail.Quantity * detail.UnitPrice) }}</td>
-                        <td>{{ detail.Comments }}</td>
+                        <td>{{ detail.id }}</td>
+                        <td>{{ detail.description }}</td>
+                        <td>{{ detail.sku }}</td>
+                        <td>{{ detail.quantity }}</td>
+                        <td>${{ '%.2f' % detail.unitprice }}</td>
+                        <td>${{ '%.2f' % (detail.quantity * detail.unitprice) }}</td>
+                        <td>{{ detail.comments }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -119,14 +119,14 @@
         <div class="modal fade" id="addPaymentModal" tabindex="-1" aria-labelledby="addPaymentModalLabel"
             aria-hidden="true">
             <div class="modal-dialog">
-                <form class="modal-content" method="post" action="/shipments/{{ shipment.ID }}/payments/add">
+                <form class="modal-content" method="post" action="/shipments/{{ shipment.id }}/payments/add">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addPaymentModalLabel">Add Payment for Shipment #{{ shipment.ID }}
+                        <h5 class="modal-title" id="addPaymentModalLabel">Add Payment for Shipment #{{ shipment.id }}
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" name="ShipmentHeaderId" value="{{ shipment.ID }}">
+                        <input type="hidden" name="ShipmentHeaderId" value="{{ shipment.id}}">
 
                         <div class="mb-3">
                             <label for="paymentDate" class="form-label">Payment Date</label>
@@ -197,14 +197,14 @@
             <tbody>
                 {% for payment in payments %}
                 <tr>
-                    <td>{{ payment.ID }}</td>
-                    <td>{{ payment.ShipmentHeaderId }}</td>
-                    <td>{{ payment.PaymentDate }}</td>
-                    <td>{{ payment.Description }}</td>
-                    <td>${{ '%.2f' % (payment.Amount) }}</td>
-                    <td>${{ '%.2f' % (payment.Fee) }}</td>
-                    <td>${{ '%.2f' % (payment.Amount + payment.Fee) }}</td>
-                    <td>{{ payment.Comments }}</td>
+                    <td>{{ payment.id }}</td>
+                    <td>{{ payment.shipmentheaderid }}</td>
+                    <td>{{ payment.paymentdate }}</td>
+                    <td>{{ payment.description }}</td>
+                    <td>${{ '%.2f' % (payment.amount) }}</td>
+                    <td>${{ '%.2f' % (payment.fee) }}</td>
+                    <td>${{ '%.2f' % (payment.amount + payment.fee) }}</td>
+                    <td>{{ payment.comments }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

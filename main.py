@@ -5,7 +5,6 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from database.products import get_products
 from database.orders import get_orders
 from business.orders import process_orders
-from database.shipments import get_shipment_header, get_shipment_details, add_shipment_header, add_shipment_detail
 from database.payments import get_payments_by_shipmentheader, add_payment
 import requests
 
@@ -21,14 +20,21 @@ print(f"Sales Manager API URL: {sales_manager_api_url}")
 def home():
     return render_template("index.html")
 
-@app.route("/inventory")
-def inventory():
-    return render_template("inventory.html")
+# @app.route("/inventory")
+# def inventory():
+#     return render_template("inventory.html")
 
 @app.route("/products")
 def products():
-    print(f"Products fetched: {get_products()}")
-    return render_template("products.html", products = get_products())
+    try:
+        response = requests.get(f"{sales_manager_api_url}/products")
+        response.raise_for_status()
+        products = response.json()
+        print(f"Products fetched: {products}")
+    except Exception as e:
+        print(f"Error fetching products: {e}")
+       
+    return render_template("products_list.html", products = products)
 
 @app.route("/sales")
 def sales():
@@ -42,6 +48,7 @@ def sales():
 def suppliers():
     return render_template("suppliers.html")
 
+# Get all shipments
 @app.route("/shipments")
 def shipments():
     try:
@@ -50,23 +57,35 @@ def shipments():
         shipments = response.json()
     except Exception as e:
         print(f"Error fetching shipments: {e}")
-        shipments = []
-    print(f"Shipments fetched: {shipments}")
+        # shipments = []
     return render_template("shipments_list.html", shipments=shipments)
 
+# Get a single shipment header with associated details and payments
 @app.route("/shipment/<int:shipment_id>")
 def shipment_details(shipment_id):
-    shipment = get_shipment_header(shipment_id)
-    details = get_shipment_details(shipment_id)
-    payments = get_payments_by_shipmentheader(shipment_id)
+
+    response = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}")
+    response.raise_for_status()
+    shipment = response.json()
+
+    response2 = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}/details")
+    response2.raise_for_status()
+    
+    details = response2.json()
+    print(f"Shipment Details: {details}")
+
+    payments =   response = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}/payments")
+    response.raise_for_status()
+    payments = response.json()
     
     return render_template('shipment_details.html', shipment=shipment, details=details, payments=payments)
 
+# Route to add new shipment form
 @app.route('/shipment/new')
 def new_shipment():
     return render_template('shipment_entry.html')
 
-# Route to handle form submission for new shipment
+# Handle new shipment header and details form submit
 @app.route('/shipment/new', methods=['POST'])
 def submit_shipment():
     # Get header fields
@@ -75,9 +94,6 @@ def submit_shipment():
     date_received = request.form.get('date_received')
     comments = request.form.get('comments')
 
-    # Insert header and get ID
-    header_id = add_shipment_header(supplier_name, shipment_no, date_received, comments)
-
     # Get details (multiple rows)
     descriptions = request.form.getlist('description[]')
     skus = request.form.getlist('sku[]')
@@ -85,19 +101,36 @@ def submit_shipment():
     unit_prices = request.form.getlist('unit_price[]')
     detail_comments = request.form.getlist('detail_comments[]')
 
+    details = []
     for desc, sku, qty, price, comm in zip(descriptions, skus, quantities, unit_prices, detail_comments):
-        add_shipment_detail(
-            header_id=header_id,
-            description=desc,
-            sku=sku,
-            quantity=int(qty),
-            unit_price=float(price),
-            comments=comm
-        )
+        details.append({
+            "Description": desc,
+            "SKU": sku,
+            "Quantity": int(qty),
+            "UnitPrice": float(price),
+            "Comments": comm
+        })
 
-    flash('Shipment added successfully!')
-    return redirect(url_for('shipments_list'))
+    # Prepare payload for API
+    payload = {
+        "SupplierName": supplier_name,
+        "ShipmentNo": shipment_no,
+        "DateReceived": date_received,
+        "Comments": comments,
+        "Details": details
+    }
+    print (f"Payload: {payload}")
+           
+    # Send POST request to API
+    api_url = f"{sales_manager_api_url}/shipments"
+    response = requests.post(api_url, json=payload)
+    if response.status_code == 201:
+        flash('Shipment added successfully!')
+    else:
+        flash('Failed to add shipment.')
+    return redirect(url_for('shipments'))
 
+# Route to add new payment form
 @app.route('/shipment/<int:shipment_id>/payment/new')
 def new_payment(shipment_id):
     return render_template('payment_entry.html', shipment_id=shipment_id)
@@ -114,6 +147,7 @@ def new_payment(shipment_id):
 #     flash('Payment added successfully!')
 #     return redirect(url_for('shipment_details', shipment_id=shipment_id))
 
+# New route to handle payment form submission
 @app.route('/shipments/<int:shipment_id>/payments/add', methods=['POST'])
 def add_payment_modal(shipment_id):
     paymentdate = request.form.get('PaymentDate')
@@ -125,23 +159,45 @@ def add_payment_modal(shipment_id):
     flash('Payment added successfully!')
     return redirect(url_for('shipment_details', shipment_id=shipment_id))
 
-@app.route('/shipments/<int:shipment_id>/details/add', methods=['POST'])
-def add_detail_modal(shipment_id):
-    description = request.form.get('Description')
-    sku = request.form.get('SKU')
-    quantity = request.form.get('Quantity')
-    unit_price = request.form.get('UnitPrice')
-    comments = request.form.get('Comments')
-    add_shipment_detail(
-        header_id=shipment_id,
-        description=description,
-        sku=sku,
-        quantity=int(quantity),
-        unit_price=float(unit_price),
-        comments=comments
-    )
-    flash('Shipment detail added successfully!')
-    return redirect(url_for('shipment_details', shipment_id=shipment_id))
+# Add new shipment detail form submit
+@app.route('/shipments/<int:shipment_header_id>/details/add', methods=['POST'])
+def add_detail_modal(shipment_header_id):
+    shipment_detail = {
+        "Description" : request.form.get('Description'),
+        "SKU": request.form.get('SKU'),
+        "Quantity": request.form.get('Quantity'),
+        "UnitPrice": request.form.get('UnitPrice'),
+        "Comments": request.form.get('Comments')
+    }
+
+    api_url = f"{sales_manager_api_url}/shipments/{shipment_header_id}/details"
+    response = requests.post(api_url, json=shipment_detail)
+    if response.status_code == 201:
+        flash('Shipment details added successfully!')
+    else:
+        flash('Failed to add shipment details.')
+
+
+    return redirect(url_for('shipments'))
+
+# Route to handle new product form submission
+@app.route('/products/new', methods=['POST'])
+def add_product():
+    # Map form fields to API fields
+    product = {
+        "productcode": request.form.get('code'),
+        "productcategory": request.form.get('category'),
+        "productcost": float(request.form.get('cost', 0)),
+        "productdesc": request.form.get('description'),
+        "color": request.form.get('color', ''),
+        "comments": request.form.get('comments', '')
+    }
+    api_url = f"{sales_manager_api_url}/products"
+  
+    response = requests.post(api_url, json=product)
+    response.raise_for_status()
+    return {"success": True}, 201
+  
 
 if __name__ == "__main__":
     app.run(debug=True)

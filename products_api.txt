@@ -1,0 +1,34 @@
+﻿
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : [
+                      {
+                        "color": "onyx green",
+                        "comments": "no comments",
+                        "productcategory": "Coasters",
+                        "productcode": "1026",
+                        "productcost": 0.0,
+                        "productdesc": "Coasters 6 pieces with holder ...
+RawContent        : HTTP/1.1 200 OK
+                    Connection: close
+                    Content-Length: 563
+                    Content-Type: application/json
+                    Date: Tue, 23 Sep 2025 18:08:54 GMT
+                    Server: Werkzeug/3.1.3 Python/3.11.9
+                    
+                    [
+                      {
+                        "color": "onyx green",
+                     ...
+Forms             : {}
+Headers           : {[Connection, close], [Content-Length, 563], [Content-Type, 
+                    application/json], [Date, Tue, 23 Sep 2025 18:08:54 GMT]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : mshtml.HTMLDocumentClass
+RawContentLength  : 563
+
+
+
