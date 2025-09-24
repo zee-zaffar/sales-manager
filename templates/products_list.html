@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %} Products {% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Products List</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">Add
+                        Product</button>
+        </div>
+
+        <div class="container">
+                <table class="table table-striped">
+                        <thead class="table-dark">
+                                <tr>
+                                        <th>Code</th>
+                                        <th>Category</th>
+                                        <th>Color</th>
+                                        <th>Cost</th>
+                                        <th>Description</th>
+                                        <th>Comments</th>
+                                </tr>
+                        </thead>
+                        <tbody>
+                                {% for product in products %}
+                                <tr>
+                                        <td>{{ product.productcode }}</td>
+                                        <td>{{ product.productcategory }}</td>
+                                        <td>{{ product.color }}</td>
+                                        <td>{{ product.productcost }}</td>
+                                        <td>{{ product.productdesc }}</td>
+                                        <td>{{ product.comments }}</td>
+
+                                </tr>
+                                {% endfor %}
+                        </tbody>
+                </table>
+        </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+                <div class="modal-content">
+                        <div class="modal-header">
+                                <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                                <form id="addProductForm">
+                                        <div class="mb-3">
+                                                <label for="productCode" class="form-label">Product Code</label>
+                                                <input type="text" class="form-control" id="code" name="code"
+                                                        required>
+                                        </div>
+                                        <div class="mb-3">
+                                                <label for="productColor" class="form-label">Color</label>
+                                                <input type="text" class="form-control" id="color" name="color"
+                                                        required>
+                                        </div>
+                                        <div class="mb-3">
+                                                <label for="productCategory" class="form-label">Category</label>
+                                                <input type="text" class="form-control" id="category"
+                                                        name="category" required>
+                                        </div>
+                                        <div class="mb-3">
+                                                <label for="productCost" class="form-label">Cost</label>
+                                                <input type="number" step="0.01" class="form-control" id="cost"
+                                                        name="cost" required>
+                                        </div>
+                                        <div class="mb-3">
+                                                <label for="productDescription" class="form-label">Description</label>
+                                                <textarea class="form-control" id="description"
+                                                        name="description" rows="2"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-success">Add Product</button>
+                                </form>
+                                <div id="addProductMsg" class="mt-2"></div>
+                        </div>
+                </div>
+        </div>
+</div>
+
+<script>
+        // AJAX form submission for adding product
+        const addProductForm = document.getElementById('addProductForm');
+        addProductForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(addProductForm);
+                fetch('/products/new', {
+                        method: 'POST',
+                        body: formData
+                })
+                        .then(response => response.json())
+                        .then(data => {
+                                const msgDiv = document.getElementById('addProductMsg');
+                                if (data.success) {
+                                        msgDiv.innerHTML = '<div class="alert alert-success">Product added successfully!</div>';
+                                        setTimeout(() => { location.reload(); }, 1000);
+                                } else {
+                                        msgDiv.innerHTML = '<div class="alert alert-danger">' + (data.error || 'Failed to add product.') + '</div>';
+                                }
+                        })
+                        .catch(() => {
+                                document.getElementById('addProductMsg').innerHTML = '<div class="alert alert-danger">Error occurred.</div>';
+                        });
+        });
+</script>
+
+{% endblock %}
