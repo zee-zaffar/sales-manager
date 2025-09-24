@@ -1,10 +1,8 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import requests
 from api.etsy import get_receipt
 from utils.csv_writer import open_csv_for_writing
-import csv
 
 RECEIPTS_FILE = 'utils/receipts.txt'
 

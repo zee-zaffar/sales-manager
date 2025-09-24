@@ -1,11 +1,6 @@
 
 import os
-import sys
 from flask import Flask, flash, redirect, render_template, request, url_for
-from database.products import get_products
-from database.orders import get_orders
-from business.orders import process_orders
-from database.payments import get_payments_by_shipmentheader, add_payment
 import requests
 
 from dotenv import load_dotenv
@@ -15,7 +10,7 @@ app = Flask(__name__)
 app.secret_key = 'your-very-secret-key'  # Change this to a strong, random value in production
 
 sales_manager_api_url = os.getenv("SALES_MANAGER_API_URL")
-print(f"Sales Manager API URL: {sales_manager_api_url}")
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -30,19 +25,18 @@ def products():
         response = requests.get(f"{sales_manager_api_url}/products")
         response.raise_for_status()
         products = response.json()
-        print(f"Products fetched: {products}")
+        
     except Exception as e:
         print(f"Error fetching products: {e}")
        
     return render_template("products_list.html", products = products)
 
-@app.route("/sales")
-def sales():
-    # Process receipts from file and fetch details
-    process_orders()
+# @app.route("/sales")
+# def sales():
+#     # Process receipts from file and fetch details
+#     process_orders()
      
-    # print(f"Orders fetched: {get_orders()}")
-    return render_template("sales.html", orders = get_orders())
+#     return render_template("sales.html", orders = get_orders())
 
 @app.route("/suppliers")
 def suppliers():
@@ -70,9 +64,7 @@ def shipment_details(shipment_id):
 
     response2 = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}/details")
     response2.raise_for_status()
-    
     details = response2.json()
-    print(f"Shipment Details: {details}")
 
     payments =   response = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}/payments")
     response.raise_for_status()
@@ -119,8 +111,7 @@ def submit_shipment():
         "Comments": comments,
         "Details": details
     }
-    print (f"Payload: {payload}")
-           
+
     # Send POST request to API
     api_url = f"{sales_manager_api_url}/shipments"
     response = requests.post(api_url, json=payload)
@@ -148,16 +139,16 @@ def new_payment(shipment_id):
 #     return redirect(url_for('shipment_details', shipment_id=shipment_id))
 
 # New route to handle payment form submission
-@app.route('/shipments/<int:shipment_id>/payments/add', methods=['POST'])
-def add_payment_modal(shipment_id):
-    paymentdate = request.form.get('PaymentDate')
-    description = request.form.get('Description')
-    amount = request.form.get('Amount')
-    fee = request.form.get('Fee')
-    comments = request.form.get('Comments')
-    add_payment(shipment_id, paymentdate, description, amount, fee, comments)
-    flash('Payment added successfully!')
-    return redirect(url_for('shipment_details', shipment_id=shipment_id))
+# @app.route('/shipments/<int:shipment_id>/payments/add', methods=['POST'])
+# def add_payment_modal(shipment_id):
+#     paymentdate = request.form.get('PaymentDate')
+#     description = request.form.get('Description')
+#     amount = request.form.get('Amount')
+#     fee = request.form.get('Fee')
+#     comments = request.form.get('Comments')
+#     add_payment(shipment_id, paymentdate, description, amount, fee, comments)
+#     flash('Payment added successfully!')
+#     return redirect(url_for('shipment_details', shipment_id=shipment_id))
 
 # Add new shipment detail form submit
 @app.route('/shipments/<int:shipment_header_id>/details/add', methods=['POST'])
@@ -184,6 +175,7 @@ def add_detail_modal(shipment_header_id):
 @app.route('/products/new', methods=['POST'])
 def add_product():
     # Map form fields to API fields
+
     product = {
         "productcode": request.form.get('code'),
         "productcategory": request.form.get('category'),
@@ -193,11 +185,84 @@ def add_product():
         "comments": request.form.get('comments', '')
     }
     api_url = f"{sales_manager_api_url}/products"
-  
     response = requests.post(api_url, json=product)
     response.raise_for_status()
     return {"success": True}, 201
-  
+
+    # Route to get all orders
+@app.route('/orders')
+def orders():
+    try:
+        response = requests.get(f"{sales_manager_api_url}/orders")
+        response.raise_for_status()
+        orders = response.json()
+    except Exception as e:
+        print(f"Error fetching orders: {e}")
+        orders = []
+    return render_template("orders.html", orders=orders)
+
+# Route to add a new order
+@app.route('/add_order', methods=['POST'])
+def add_order():
+    order = {
+        "order_no": request.form.get('order_no'),
+        "order_date": request.form.get('order_date'),
+        "order_amount": float(request.form.get('order_amount', 0)),
+        "qty": int(request.form.get('qty', 0)),
+        "sales_tax": float(request.form.get('sales_tax', 0)),
+        "platform": request.form.get('platform'),
+        "source": request.form.get('source'),
+        "color": request.form.get('color', ''),
+        "comments": request.form.get('comments', '')
+    }
+    # Call backend API to insert order
+    backend_api_url = f"{sales_manager_api_url}/orders"
+    try:
+        backend_response = requests.post(backend_api_url, json=order)
+        backend_response.raise_for_status()
+        return {"success": True}, 201
+    except Exception as e:
+        print(f"Error adding order via backend API: {e}")
+        return {"success": False, "error": str(e)}, 400
+
+# Route to update an existing order
+@app.route('/update_order', methods=['POST'])
+def update_order():
+    order = {
+        "order_no": request.form.get('order_no'),
+        "order_date": request.form.get('order_date'),
+        "order_amount": float(request.form.get('order_amount', 0)),
+        "qty": int(request.form.get('qty', 0)),
+        "sales_tax": float(request.form.get('sales_tax', 0)),
+        "platform": request.form.get('platform'),
+        "source": request.form.get('source'),
+        "color": request.form.get('color', ''),
+        "comments": request.form.get('comments', '')
+    }
+    print(f"order_no1: {request.form.get('order_no')}")
+    print(f"order_no2: {order['order_no']}")
+    api_url = f"{sales_manager_api_url}/orders/{order['order_no']}"
+    try:
+        response = requests.put(api_url, json=order)
+        response.raise_for_status()
+        return {"success": True}, 200
+    except Exception as e:
+        print(f"Error updating order: {e}")
+        return {"success": False, "error": str(e)}, 400
+
+# Route to query an order by order number
+@app.route('/orders/<order_no>')
+def get_order(order_no):
+    print(f"Fetching order {order_no}") 
+    api_url = f"{sales_manager_api_url}/orders/{order_no}"
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        order = response.json()
+        return order, 200
+    except Exception as e:
+        print(f"Error fetching order {order_no}: {e}")
+        return {"success": False, "error": str(e)}, 404
 
 if __name__ == "__main__":
     app.run(debug=True)

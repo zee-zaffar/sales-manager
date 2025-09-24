@@ -1,4 +1,3 @@
-from copy import error
 import psycopg2
 from psycopg2.extensions import connection as _pg_conn
 

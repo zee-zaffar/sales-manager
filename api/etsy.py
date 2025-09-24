@@ -47,8 +47,7 @@ def get_receipt(receipt_id: int, timeout: int = 10)-> Receipt:
         data = response.json()
         receipt = Receipt(**data)
         receipt.grant_total = Total(**data.get("grandtotal", {}))
-        # print(f"Receipt Dump:{receipt.model_dump()}")
-        # print(f"ReceiptId: {receipt.receipt_id}")
+       
         return receipt
 
     except requests.HTTPError as exc:
