@@ -37,6 +37,7 @@ class Receipt(BaseModel):
 class AccessTokenResponse(BaseModel):
     access_token: Optional[str] = None
     token_type: Optional[str] = None
+    refresh_token: Optional[str] = None
     expires_in: Optional[int] = None
 
     class Config:

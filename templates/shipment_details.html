@@ -20,29 +20,29 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" name="ShipmentHeaderId" value="{{ shipment.id }}">
+                        <input type="hidden" name="shipment_header_id" value="{{ shipment.id }}">
                         <div class="mb-3">
                             <label for="detailDescription" class="form-label">Description</label>
-                            <input id="detailDescription" name="Description" type="text" class="form-control"
+                            <input id="detailDescription" name="description" type="text" class="form-control"
                                 maxlength="255" required>
                         </div>
                         <div class="mb-3">
                             <label for="detailSKU" class="form-label">SKU</label>
-                            <input id="detailSKU" name="SKU" type="text" class="form-control" maxlength="100" required>
+                            <input id="detailSKU" name="sku" type="text" class="form-control" maxlength="100" required>
                         </div>
                         <div class="mb-3">
                             <label for="detailQuantity" class="form-label">Quantity</label>
-                            <input id="detailQuantity" name="Quantity" type="number" min="1" class="form-control"
+                            <input id="detailQuantity" name="quantity" type="number" min="1" class="form-control"
                                 required>
                         </div>
                         <div class="mb-3">
                             <label for="detailUnitPrice" class="form-label">Unit Price</label>
-                            <input id="detailUnitPrice" name="UnitPrice" type="number" step="0.01" min="0"
+                            <input id="detailUnitPrice" name="unit_price" type="number" step="0.01" min="0"
                                 class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label for="detailComments" class="form-label">Comments</label>
-                            <textarea id="detailComments" name="Comments" class="form-control" rows="2"></textarea>
+                            <textarea id="detailComments" name="comments" class="form-control" rows="2"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -56,9 +56,9 @@
             <h2 class="h5 mb-0">Shipment Header</h2>
         </div>
         <ul class="list-group list-group-flush">
-            <li class="list-group-item"><strong>Supplier Name:</strong> {{ shipment.suppliername }}</li>
-            <li class="list-group-item"><strong>Shipment No:</strong> {{ shipment.shipmentno }}</li>
-            <li class="list-group-item"><strong>Date Received:</strong> {{shipment.datereceived }}</li>
+            <li class="list-group-item"><strong>Supplier Name:</strong> {{ shipment.supplier_name }}</li>
+            <li class="list-group-item"><strong>Shipment No:</strong> {{ shipment.shipment_no }}</li>
+            <li class="list-group-item"><strong>Date Received:</strong> {{shipment.date_received }}</li>
             <li class="list-group-item"><strong>Comments:</strong> {{ shipment.comments }}</li>
         </ul>
     </div>
@@ -92,8 +92,8 @@
                         <td>{{ detail.description }}</td>
                         <td>{{ detail.sku }}</td>
                         <td>{{ detail.quantity }}</td>
-                        <td>${{ '%.2f' % detail.unitprice }}</td>
-                        <td>${{ '%.2f' % (detail.quantity * detail.unitprice) }}</td>
+                        <td>${{ '%.2f' % detail.unit_price }}</td>
+                        <td>${{ '%.2f' % (detail.quantity * detail.unit_price) }}</td>
                         <td>{{ detail.comments }}</td>
                     </tr>
                     {% endfor %}
@@ -129,30 +129,30 @@
 
                         <div class="mb-3">
                             <label for="paymentDate" class="form-label">Payment Date</label>
-                            <input id="paymentDate" name="PaymentDate" type="date" class="form-control" required>
+                            <input id="paymentDate" name="payment_date" type="date" class="form-control" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="paymentDescription" class="form-label">Description</label>
-                            <input id="paymentDescription" name="Description" type="text" class="form-control"
+                            <input id="paymentDescription" name="description" type="text" class="form-control"
                                 maxlength="255">
                         </div>
 
                         <div class="mb-3">
                             <label for="paymentAmount" class="form-label">Amount</label>
-                            <input id="paymentAmount" name="Amount" type="number" step="0.01" min="0"
+                            <input id="paymentAmount" name="amount" type="number" step="0.01" min="0"
                                 class="form-control" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="paymentFee" class="form-label">Fee</label>
-                            <input id="paymentFee" name="Fee" type="number" step="0.01" min="0" class="form-control"
+                            <input id="paymentFee" name="fee" type="number" step="0.01" min="0" class="form-control"
                                 value="0.00">
                         </div>
 
                         <div class="mb-3">
                             <label for="paymentComments" class="form-label">Comments</label>
-                            <textarea id="paymentComments" name="Comments" class="form-control" rows="2"></textarea>
+                            <textarea id="paymentComments" name="comments" class="form-control" rows="2"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -197,8 +197,8 @@
                     {% for payment in payments %}
                     <tr>
                         <td>{{ payment.id }}</td>
-                        <td>{{ payment.shipmentheaderid }}</td>
-                        <td>{{ payment.paymentdate }}</td>
+                        <td>{{ payment.shipment_header_id }}</td>
+                        <td>{{ payment.payment_date }}</td>
                         <td>{{ payment.description }}</td>
                         <td>${{ '%.2f' % (payment.amount) }}</td>
                         <td>${{ '%.2f' % (payment.fee) }}</td>

@@ -8,7 +8,7 @@
 <body>
     <h1>Add Payment for Shipment #{{ shipment_id }}</h1>
     <form method="post" action="/shipment/{{ shipment_id }}/payment/new">
-        <label>Payment Date: <input type="date" name="paymentdate" required></label><br>
+        <label>Payment Date: <input type="date" name="payment_date" required></label><br>
         <label>Description: <input type="text" name="description" required></label><br>
         <label>Amount: <input type="number" name="amount" step="0.01" min="0" required></label><br>
         <label>Fee: <input type="number" name="fee" step="0.01" min="0" required></label><br>

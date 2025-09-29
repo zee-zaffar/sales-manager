@@ -1,13 +1,15 @@
 import sys
 import os
+import datetime
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from api.etsy import get_receipt
 from utils.csv_writer import open_csv_for_writing
+import requests
+from api.models import Total, Transaction, Receipt
 
 RECEIPTS_FILE = 'utils/receipts.txt'
 API_URL = 'https://api.example.com/get-receipt'  # Replace with actual API endpoint
 
-def process_orders():
+def process_receipts():
     receipts_file_path = 'utils/receipts.txt'
     orders_file_path = 'utils/etsy_orders.csv'
 
@@ -19,7 +21,7 @@ def process_orders():
 
         # Write header row to orders CSV
         ordersWriter.writerow([
-            'Order Date','Order No','Qty','Category','Color','Source','Platform','OrderAmount','SalesTax'
+            'Order Date','Order No','SKU','Qty','Category','Color','Source','Platform','OrderAmount','SalesTax','Title'
         ])
 
         # Process each receipt ID
@@ -32,35 +34,45 @@ def process_orders():
 
             #if receipt exitst, write to CSV
             if receipt:
+                try:
+                    order_date = datetime.datetime.fromtimestamp(receipt.create_timestamp).strftime('%m/%d/%y')
+                except Exception:
+                    order_date = receipt.create_timestamp  # fallback if conversion fails
+
                 ordersWriter.writerow([
-                    receipt.create_timestamp,                   # Order Date
-                    receipt.receipt_id,                         # Order No
+                    order_date,                                 # Order Date
+                    receipt.receipt_id, 
+                    receipt.transactions[0].sku,                # Sku
                     receipt.transactions[0].quantity,           # Qty (may need to sum from transactions)
-                    # receipt.get('category', ''),                      # Category (custom mapping may be needed)
-                    # receipt.get('color', ''),                         # Color (custom mapping may be needed)
-                    "Suaz-3",                                           # Source (custom mapping may be needed)
-                    "Etsy",                                             # Platform (custom mapping may be needed)
-                    receipt.grandtotal.amount,
-                    receipt.total_tax_cost.amount                   # SalesTax
+                    "",
+                    "",
+                    "Suaz-3",                                   # Source (custom mapping may be needed)
+                    "Etsy",                                     # Platform (custom mapping may be needed)
+                    f"{receipt.grandtotal.amount/100:.2f}",     # OrderAmount formatted
+                    f"{receipt.total_tax_cost.amount/100:.2f}",  # SalesTax formatted
+                    receipt.transactions[0].title,              # Title
                 ])
             else:
                 print(f"Failed to fetch receipt from API {receipt_Id}")
 
         ordersFile.close() 
+        return {"status": "completed"}
 
-# def get_receipt(receipt_id:int):
-#     response = requests.get(f"{API_URL}/{receipt_id}")
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         print(f"Failed to fetch receipt {receipt_id}: {response.status_code}")
-#         return None
+def get_receipt(receipt_id: int):
+    sales_manager_api_url = os.getenv("SALES_MANAGER_API_URL", "").rstrip("/")
+    try:
+        response = requests.get(f"{sales_manager_api_url}/etsy/receipts/{receipt_id}")
+        response.raise_for_status()
+        data = response.json()
+        receipt = Receipt(**data)
+        # ensure grandtotal is parsed into a Total and assigned to the expected attribute name
+        receipt.grandtotal = Total(**data.get("grandtotal", {}))
+        receipt.transactions = [Transaction(**t) for t in data.get("transactions", [])]
+        return receipt
+    except Exception as e:
+        print(f"Error updating order: {e}")
+        return None
 
-def append_receipt_to_csv(receipt):
-    orders_file_path = 'utils/etsy_sales.csv'
+# def append_receipt_to_csv(receipt):
+#     orders_file_path = 'utils/etsy_sales.csv'
 
-def main():
-   process_orders()
-
-if __name__ == "__main__":
-    main()

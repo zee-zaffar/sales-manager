@@ -24,9 +24,9 @@
             {% for shipment in shipments %}
             <tr>
                 <td>{{ shipment.id }}</td>
-                <td>{{ shipment.suppliername }}</td>
-                <td>{{ shipment.shipmentno }}</td>
-                <td>{{ shipment.datereceived }}</td>
+                <td>{{ shipment.supplier_name }}</td>
+                <td>{{ shipment.shipment_no }}</td>
+                <td>{{ shipment.date_received }}</td>
                 <td>{{ shipment.comments }}</td>
                 <td><a href="/shipment/{{ shipment.id }}">View</a></td>
             </tr>
