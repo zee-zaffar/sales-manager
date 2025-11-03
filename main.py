@@ -88,7 +88,16 @@ def shipment_details(shipment_id):
     except Exception as e:
         print(f"Error fetching shipment details/payments: {e}")
 
-    return render_template('shipment_details.html', shipment=shipment, details=details, payments=payments)
+    details_grand_total = sum(d['quantity'] * d['unit_price'] for d in details)
+    payments_grand_total = sum(p['amount'] + p['fee'] for p in payments)
+    return render_template(
+        'shipment_details.html',
+        shipment=shipment,
+        details=details,
+        payments=payments,
+        details_grand_total=details_grand_total,
+        payments_grand_total=payments_grand_total
+    )
 
 # Route to add new shipment form
 @app.route('/shipment/new')

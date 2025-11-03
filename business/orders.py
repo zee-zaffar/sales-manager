@@ -1,10 +1,14 @@
 import sys
 import os
 import datetime
+
+from dotenv import load_dotenv
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.csv_writer import open_csv_for_writing
 import requests
 from api.models import Total, Transaction, Receipt
+
+load_dotenv()
 
 RECEIPTS_FILE = 'utils/receipts.txt'
 API_URL = 'https://api.example.com/get-receipt'  # Replace with actual API endpoint
@@ -21,40 +25,54 @@ def process_receipts():
 
         # Write header row to orders CSV
         ordersWriter.writerow([
-            'Order Date','Order No','SKU','Qty','Category','Color','Source','Platform','OrderAmount','SalesTax','Title'
+            'Order Date','Order No','Status', 'SKU','Qty','Category','Color','Source','Platform','Order Amt', 'Tax', 'Gross Rev','Fee','Shipping','Net Rev','COGS','Profit','Title'
         ])
 
         # Process each receipt ID
         for line in receiptsFile:
             receipt_Id = int(line.strip())
-            print(f"Receipt:{receipt_Id}")
 
             # Fetch receipt details from Etsy API
-            receipt = get_receipt(receipt_Id)
+            receipt_data = get_receipt(receipt_Id)
 
             #if receipt exitst, write to CSV
-            if receipt:
-                try:
-                    order_date = datetime.datetime.fromtimestamp(receipt.create_timestamp).strftime('%m/%d/%y')
-                except Exception:
-                    order_date = receipt.create_timestamp  # fallback if conversion fails
-
-                ordersWriter.writerow([
-                    order_date,                                 # Order Date
-                    receipt.receipt_id, 
-                    receipt.transactions[0].sku,                # Sku
-                    receipt.transactions[0].quantity,           # Qty (may need to sum from transactions)
-                    "",
-                    "",
-                    "Suaz-3",                                   # Source (custom mapping may be needed)
-                    "Etsy",                                     # Platform (custom mapping may be needed)
-                    f"{receipt.grandtotal.amount/100:.2f}",     # OrderAmount formatted
-                    f"{receipt.total_tax_cost.amount/100:.2f}",  # SalesTax formatted
-                    receipt.transactions[0].title,              # Title
-                ])
-            else:
+            if not receipt_data:
                 print(f"Failed to fetch receipt from API {receipt_Id}")
+                continue
+        
+            try:
+                order_date = datetime.datetime.fromtimestamp(receipt_data.create_timestamp).strftime('%m/%d/%y')
+                grand_total = receipt_data.grandtotal.amount/100
+                sales_tax = receipt_data.total_tax_cost.amount/100
+                gross_revenue = grand_total - sales_tax
+                etsy_fees = ((grand_total - sales_tax)*0.065) + ((grand_total*0.03) + 0.25)       # Example Etsy fee calculation
+                net_revenue = gross_revenue - etsy_fees - 0
 
+            except Exception:
+                order_date = receipt_data.create_timestamp  # fallback if conversion fails
+
+            ordersWriter.writerow([
+            order_date,                                             # Order Date
+                receipt_data.receipt_id,                            # Order No
+                receipt_data.status,                                # Status
+                receipt_data.transactions[0].sku,                   # Sku
+                receipt_data.transactions[0].quantity,              # Qty (may need to sum from transactions)
+                "",                                                 # Category (custom mapping may be needed)   
+                "",                                                 # Color (custom mapping may be needed)
+                "Suaz-3",                                           # Source (custom mapping may be needed)
+                "Etsy",                                             # Platform (custom mapping may be needed
+                f"{grand_total:.2f}",                               # Order Amount formatted
+                f"{sales_tax:.2f}",                                 # Sales Tax formatted
+                f"{gross_revenue:.2f}",                             # Gross Revenue                     # Net Revenue (Grand Total - Tax)
+                f"{etsy_fees:.2f}",                                 # Etsy Fee
+                "0",                                                # Shipping Fee placeholder
+                f"{net_revenue:.2f}",                               # Net Revenue (Gross Revenue - Etsy Fees)
+                "0",                                                # COGS placeholder
+                "Profit",                                           # Profit placeholder
+                receipt_data.transactions[0].title                  # Title
+            ])
+            print(f"Receipt:{receipt_Id} successfully processed")
+               
         ordersFile.close() 
         return {"status": "completed"}
 
@@ -70,9 +88,9 @@ def get_receipt(receipt_id: int):
         receipt.transactions = [Transaction(**t) for t in data.get("transactions", [])]
         return receipt
     except Exception as e:
-        print(f"Error updating order: {e}")
+        print(f"Error fetching receipt details: {e}")
         return None
 
-# def append_receipt_to_csv(receipt):
-#     orders_file_path = 'utils/etsy_sales.csv'
+if __name__ == "__main__":
+    process_receipts()
 

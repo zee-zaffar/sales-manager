@@ -1,4 +1,4 @@
-Order Date,Order No,SKU,Qty,Category,Color,Source,Platform,OrderAmount,SalesTax,Title
-08/31/25,3786172159,Custom-25-1,1,,,Suaz-3,Etsy,80.58,5.62,"Chess set storage box, store up to 15.5 x15.5 inch chess board, handmade chess storage case, green velvet fabric"
-08/30/25,3784939393,Shah-25-8,1,,,Suaz-3,Etsy,20.21,1.50,Handmade Marble Grapes Bunch: Green Onyx Home Decor Gift
-07/27/25,3747658570,SHAH-25-10-1026,1,,,Suaz-3,Etsy,48.71,3.71,"Onyx coasters set with holder, handmade 3.5 inch marble coasters, green onyx stone tea coasters, barware coasters, housewarming gift for her"
+Order Date,Order No,Status,SKU,Qty,Category,Color,Source,Platform,Order Amt,Tax,Gross Rev,Fee,Shipping,Net Rev,COGS,Profit,Title
+8/31/2025,3786172159,Completed,SUAZ-00-3,1,,,Suaz-3,Etsy,80.58,5.62,74.96,7.54,5,67.42,0,Profit,"Chess set storage box, store up to 15.5 x15.5 inch chess board, handmade chess storage case, green velvet fabric"
+8/30/2025,3784939393,Completed,Shah-25-8,1,,,Suaz-3,Etsy,20.21,1.5,18.71,2.07,5,16.64,0,Profit,Handmade Marble Grapes Bunch: Green Onyx Home Decor Gift
+7/27/2025,3747658570,Partially Refunded,ASIF-25-3-1026,1,,,Suaz-3,Etsy,48.71,3.71,45,4.64,5,40.36,0,Profit,"Onyx coasters set with holder, handmade 3.5 inch marble coasters, green onyx stone tea coasters, barware coasters, housewarming gift for her"
