@@ -12,23 +12,6 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "your-very-secret-key")  # Change this to a strong, random value in production
 
 sales_manager_api_url = os.getenv("SALES_MANAGER_API_URL", "").rstrip("/")
-
-# @app.route("/")
-# def oauth_callback():
-#     try:
-#         # exchange the code for an access token using the helper; implementation depends on your helper
-#         token_response = get_refresh_token(
-#             client_id=os.getenv("ETSY_API_KEY"),
-#             refresh_token=os.getenv("Etsy_REFRESH_TOKEN") 
-#         )
-#         # Save the token securely; here we just print it
-#         print(f"Access Token: {token_response.access_token}")
-#         print(f"Refresh Token: {token_response.refresh_token}")
-#         # Do not print tokens in production; here we just confirm success
-#         return {"success": True, "token_obtained": bool(token_response.access_token)}, 200
-#     except Exception as e:
-#         print(f"Error exchanging code for token: {e}")
-#         return render_template("index.html")
     
 @app.route("/")
 def home():
@@ -68,7 +51,7 @@ def shipments():
     return render_template("shipments_list.html", shipments=shipments)
 
 # Get a single shipment header with associated details and payments
-@app.route("/shipment/<int:shipment_id>")
+@app.route("/shipments/<int:shipment_id>")
 def shipment_details(shipment_id):
     shipment = {}
     details = []
@@ -153,21 +136,53 @@ def submit_shipment():
     return redirect(url_for('shipments'))
 
 # Route to add new payment form
-@app.route('/shipment/<int:shipment_id>/payment/new')
+@app.route('/shipments/<int:shipment_id>/payment/new')
 def new_payment(shipment_id):
     return render_template('payment_entry.html', shipment_id=shipment_id)
 
-# Route to handle payment form submission
-# @app.route('/shipment/<int:shipment_id>/payment/new', methods=['POST'])
-# def submit_payment(shipment_id):
-#     paymentdate = request.form.get('paymentdate')
-#     description = request.form.get('description')
-#     amount = request.form.get('amount')
-#     fee = request.form.get('fee')
-#     comments = request.form.get('comments')
-#     add_payment(shipment_id, paymentdate, description, amount, fee, comments)
-#     flash('Payment added successfully!')
-#     return redirect(url_for('shipment_details', shipment_id=shipment_id))
+@app.route('/shipments/<int:shipment_id>/details/update', methods=['POST'])
+def update_detail_modal(shipment_id):
+    try:
+        data = {
+            'detail_id': request.form.get('detail_id'),
+            'description': request.form.get('description'),
+            'sku': request.form.get('sku'),
+            'quantity': request.form.get('quantity'),
+            'unit_price': request.form.get('unit_price'),
+            'comments': request.form.get('comments')
+        }
+        
+        response = requests.put(f"{sales_manager_api_url}/shipments/{shipment_id}/details/{data['detail_id']}", json=data)
+        response.raise_for_status()
+        
+        flash('Shipment detail updated successfully!', 'success')
+    except Exception as e:
+        print(f"Error updating shipment detail: {e}")
+        flash('Error updating shipment detail.', 'error')
+    
+    return redirect(url_for('shipment_details', shipment_id=shipment_id))
+
+@app.route('/shipments/<int:shipment_id>/payments/update', methods=['POST'])
+def update_payment_modal(shipment_id):
+    try:
+        data = {
+            'payment_id': request.form.get('payment_id'),
+            'payment_date': request.form.get('payment_date'),
+            'description': request.form.get('description'),
+            'amount': request.form.get('amount'),
+            'fee': request.form.get('fee'),
+            'comments': request.form.get('comments')
+        }
+        
+        response = requests.put(f"{sales_manager_api_url}/payments/{data['payment_id']}", json=data)
+        response.raise_for_status()
+        
+        flash('Payment updated successfully!', 'success')
+    except Exception as e:
+        print(f"Error updating payment: {e}")
+        flash('Error updating payment.', 'error')
+    
+    return redirect(url_for('shipment_details', shipment_id=shipment_id))
 
 # New route to handle payment form submission
 @app.route('/shipments/<int:shipment_header_id>/payments/add', methods=['POST'])
