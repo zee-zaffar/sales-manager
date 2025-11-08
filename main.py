@@ -31,7 +31,7 @@ def products():
 
 @app.route("/process_receipts")
 def get_receipts():
-    # Process receipts from file and fetch details
+    # Process Etsy receipts from utils\receipts.txt file
     return process_receipts()
 
 @app.route("/suppliers")
@@ -140,11 +140,15 @@ def submit_shipment():
 def new_payment(shipment_id):
     return render_template('payment_entry.html', shipment_id=shipment_id)
 
-@app.route('/shipments/<int:shipment_id>/details/update', methods=['POST'])
-def update_detail_modal(shipment_id):
+# Update shipment detail form submit
+@app.route('/shipments/<int:header_id>/details/update', methods=['POST'])
+def update_detail_modal(header_id):
+
+    detail_id = request.form.get('detail_id')
+
     try:
         data = {
-            'detail_id': request.form.get('detail_id'),
+            'detail_id': detail_id,
             'description': request.form.get('description'),
             'sku': request.form.get('sku'),
             'quantity': request.form.get('quantity'),
@@ -152,7 +156,7 @@ def update_detail_modal(shipment_id):
             'comments': request.form.get('comments')
         }
         
-        response = requests.put(f"{sales_manager_api_url}/shipments/{shipment_id}/details/{data['detail_id']}", json=data)
+        response = requests.put(f"{sales_manager_api_url}/shipments/{header_id}/details/{detail_id}", json=data)
         response.raise_for_status()
         
         flash('Shipment detail updated successfully!', 'success')
@@ -160,10 +164,13 @@ def update_detail_modal(shipment_id):
         print(f"Error updating shipment detail: {e}")
         flash('Error updating shipment detail.', 'error')
     
-    return redirect(url_for('shipment_details', shipment_id=shipment_id))
+    return redirect(url_for('shipment_details', shipment_id=header_id))
 
-@app.route('/shipments/<int:shipment_id>/payments/update', methods=['POST'])
-def update_payment_modal(shipment_id):
+# update payment form submit
+@app.route('/shipments/<int:header_id>/payments/update', methods=['POST'])
+def update_payment_modal(header_id):
+
+    payment_id = int(request.form.get('payment_id'))
     try:
         data = {
             'payment_id': request.form.get('payment_id'),
@@ -174,7 +181,7 @@ def update_payment_modal(shipment_id):
             'comments': request.form.get('comments')
         }
         
-        response = requests.put(f"{sales_manager_api_url}/payments/{data['payment_id']}", json=data)
+        response = requests.put(f"{sales_manager_api_url}/shipments/{header_id}/payments/{payment_id}", json=data)
         response.raise_for_status()
         
         flash('Payment updated successfully!', 'success')
@@ -182,9 +189,9 @@ def update_payment_modal(shipment_id):
         print(f"Error updating payment: {e}")
         flash('Error updating payment.', 'error')
     
-    return redirect(url_for('shipment_details', shipment_id=shipment_id))
+    return redirect(url_for('shipment_details', shipment_id=header_id))
 
-# New route to handle payment form submission
+# Add new payment form submit
 @app.route('/shipments/<int:shipment_header_id>/payments/add', methods=['POST'])
 def add_payment_modal(shipment_header_id):
     new_payment = {
@@ -341,8 +348,6 @@ def get_order(order_no):
     except Exception as e:
         print(f"Error fetching order {order_no}: {e}")
         return {"success": False, "error": str(e)}, 404
-
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=7092)

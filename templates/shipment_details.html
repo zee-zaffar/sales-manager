@@ -317,7 +317,6 @@
                 <thead class="table-light">
                     <tr>
                         <th>ID</th>
-                        <th>Shipment Header Id</th>
                         <th>Payment Date</th>
                         <th>Description</th>
                         <th>Amount</th>
@@ -332,7 +331,6 @@
                         {% set payment_total = payment.amount + payment.fee %}
                     <tr>
                         <td>{{ payment.id }}</td>
-                        <td>{{ payment.shipment_header_id }}</td>
                         <td>{{ payment.payment_date }}</td>
                         <td>{{ payment.description }}</td>
                         <td>${{ '%.2f' % (payment.amount) }}</td>
@@ -341,7 +339,7 @@
                         <td>{{ payment.comments }}</td>
                         <td>
                             <button type="button" class="btn btn-sm btn-primary" 
-                                onclick="openEditPaymentModal({{ payment.id }}, '{{ payment.payment_date }}', '{{ payment.description }}', {{ payment.amount }}, {{ payment.fee }}, '{{ payment.comments }}')">
+                                onclick="openEditPaymentModal('{{ payment.id }}', '{{ payment.payment_date }}', '{{ payment.description }}', '{{ payment.amount }}', '{{ payment.fee }}', '{{ payment.comments }}')">
                                 Edit
                             </button>
                         </td>
