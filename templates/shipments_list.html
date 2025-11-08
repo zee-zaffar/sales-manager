@@ -9,7 +9,18 @@
     <a href="/shipment/new" class="btn btn-success mt-3">Add New Shipment</a>
 </div>
 <div class="container">
-    <table class="table table-striped">
+    <!-- Filter Section -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="supplierFilter" class="form-label">Filter by Supplier Name:</label>
+            <input type="text" id="supplierFilter" class="form-control" placeholder="Type to filter by supplier name...">
+        </div>
+        <div class="col-md-6">
+            <label for="shipmentFilter" class="form-label">Filter by Shipment No:</label>
+            <input type="text" id="shipmentFilter" class="form-control" placeholder="Type to filter by shipment number...">
+        </div>
+    </div>
+  <table class="table table-striped" id="shipmentsTable">
         <thead>
             <tr>
                 <th>ID</th>
@@ -24,15 +35,49 @@
             {% for shipment in shipments %}
             <tr>
                 <td>{{ shipment.id }}</td>
-                <td>{{ shipment.supplier_name }}</td>
-                <td>{{ shipment.shipment_no }}</td>
+                <td class="supplier-name">{{ shipment.supplier_name }}</td>
+                <td class="shipment-no">{{ shipment.shipment_no }}</td>
                 <td>{{ shipment.date_received }}</td>
                 <td>{{ shipment.comments }}</td>
-                <td><a href="/shipment/{{ shipment.id }}">View</a></td>
+                <td><a href="/shipments/{{ shipment.id }}">View</a></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const supplierFilter = document.getElementById('supplierFilter');
+    const shipmentFilter = document.getElementById('shipmentFilter');
+    const table = document.getElementById('shipmentsTable');
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
 
+    function filterTable() {
+        const supplierValue = supplierFilter.value.toLowerCase();
+        const shipmentValue = shipmentFilter.value.toLowerCase();
+
+        for (let i = 0; i < rows.length; i++) {
+            const supplierCell = rows[i].getElementsByClassName('supplier-name')[0];
+            const shipmentCell = rows[i].getElementsByClassName('shipment-no')[0];
+            
+            const supplierText = supplierCell.textContent || supplierCell.innerText;
+            const shipmentText = shipmentCell.textContent || shipmentCell.innerText;
+            
+            const supplierMatch = supplierText.toLowerCase().includes(supplierValue);
+            const shipmentMatch = shipmentText.toLowerCase().includes(shipmentValue);
+            
+              // Show row only if both filters match (or are empty)
+            if (supplierMatch && shipmentMatch) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    }
+
+    // Add event listeners for real-time filtering
+    supplierFilter.addEventListener('input', filterTable);
+    shipmentFilter.addEventListener('input', filterTable);
+});
+</script>
 {% endblock %}
