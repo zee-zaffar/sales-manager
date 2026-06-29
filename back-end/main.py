@@ -1,8 +1,11 @@
+import os
+from pathlib import Path
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 
-load_dotenv()
+dotenv_path = Path(__file__).resolve().parent / '.env'
+load_dotenv(dotenv_path=dotenv_path, override=True)
 
 from config import Config
 
