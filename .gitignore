@@ -33,14 +33,8 @@ utils/etsy_orders.csv
 utils/receipts.txt
 *.csv
 
-<<<<<<< HEAD
-# PostgreSQL local database data and logs
-back-end/pgdata-local/
-back-end/pg_local.log
-=======
 # PostgreSQL local development database
 back-end/pgdata-local/
->>>>>>> 5bcb423c99fe6b5f08982e210954af03ce2d13f2
 
 # IDE / OS
 .vscode/
