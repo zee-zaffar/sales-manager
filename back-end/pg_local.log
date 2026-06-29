@@ -1,0 +1,204 @@
+2026-06-29 14:20:39.603 CDT [6192] LOG:  starting PostgreSQL 18.3 on x86_64-windows, compiled by msvc-19.44.35225, 64-bit
+2026-06-29 14:20:39.610 CDT [6192] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+2026-06-29 14:20:39.610 CDT [6192] LOG:  listening on IPv6 address "::1", port 5433
+2026-06-29 14:20:40.322 CDT [18800] LOG:  database system was shut down at 2026-06-29 14:20:31 CDT
+2026-06-29 14:20:40.331 CDT [6192] LOG:  database system is ready to accept connections
+2026-06-29 14:21:06.666 CDT [10276] FATAL:  role "zee.zaffar" does not exist
+2026-06-29 14:21:17.086 CDT [2232] ERROR:  CREATE DATABASE cannot run inside a transaction block
+2026-06-29 14:21:17.086 CDT [2232] STATEMENT:  CREATE DATABASE sales_manager; CREATE USER agent WITH PASSWORD 'agentpass'; GRANT ALL PRIVILEGES ON DATABASE sales_manager TO agent;
+2026-06-29 14:21:27.782 CDT [13280] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:21:27.782 CDT [13280] STATEMENT:  CREATE TABLE IF NOT EXISTS products (
+	    code        VARCHAR(100)    PRIMARY KEY,
+	    category    VARCHAR(255)    NOT NULL,
+	    description VARCHAR(255)    NOT NULL,
+	    color       VARCHAR(100)    NOT NULL,
+	    cost        NUMERIC(18, 2)  NOT NULL,
+	    comments    TEXT
+	);
+2026-06-29 14:21:27.787 CDT [13280] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:21:27.787 CDT [13280] STATEMENT:  CREATE TABLE IF NOT EXISTS orders (
+	    order_no        VARCHAR(100)    PRIMARY KEY,
+	    order_date      DATE            NOT NULL,
+	    qty             INTEGER         NOT NULL,
+	    color           VARCHAR(100),
+	    source          VARCHAR(100),
+	    platform        VARCHAR(100),
+	    order_amount    NUMERIC(18, 2),
+	    sales_tax       NUMERIC(18, 2),
+	    comments        TEXT
+	);
+2026-06-29 14:21:27.802 CDT [13280] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:21:27.802 CDT [13280] STATEMENT:  CREATE TABLE IF NOT EXISTS shipment_header (
+	    id              SERIAL          PRIMARY KEY,
+	    supplier_name   VARCHAR(255)    NOT NULL,
+	    shipment_no     VARCHAR(100)    NOT NULL,
+	    date_received   DATE            NOT NULL,
+	    comments        TEXT
+	);
+2026-06-29 14:21:27.818 CDT [13280] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:21:27.818 CDT [13280] STATEMENT:  CREATE TABLE IF NOT EXISTS shipment_detail (
+	    id                  SERIAL          PRIMARY KEY,
+	    shipment_header_id  INTEGER         NOT NULL
+	                            REFERENCES shipment_header(id) ON DELETE CASCADE,
+	    description         TEXT,
+	    sku                 VARCHAR(100),
+	    quantity            INTEGER,
+	    unit_price          NUMERIC(18, 2),
+	    comments            TEXT
+	);
+2026-06-29 14:21:27.827 CDT [13280] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:21:27.827 CDT [13280] STATEMENT:  CREATE TABLE IF NOT EXISTS payments (
+	    id                  SERIAL          PRIMARY KEY,
+	    shipment_header_id  INTEGER         NOT NULL
+	                            REFERENCES shipment_header(id) ON DELETE CASCADE,
+	    payment_date        DATE            NOT NULL,
+	    description         VARCHAR(100)    NOT NULL,
+	    amount              NUMERIC(18, 2)  NOT NULL,
+	    fee                 NUMERIC(18, 2)  NOT NULL,
+	    comments            TEXT
+	);
+2026-06-29 14:21:27.833 CDT [13280] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:21:27.833 CDT [13280] STATEMENT:  CREATE TABLE IF NOT EXISTS suppliers (
+	    id              SERIAL          PRIMARY KEY,
+	    name            VARCHAR(255)    NOT NULL,
+	    contact_name    VARCHAR(255),
+	    email           VARCHAR(255),
+	    phone           VARCHAR(50),
+	    address         TEXT,
+	    comments        TEXT
+	);
+2026-06-29 14:21:28.149 CDT [19996] ERROR:  relation "products" does not exist at character 13
+2026-06-29 14:21:28.149 CDT [19996] STATEMENT:  INSERT INTO products (code, category, description, color, cost, comments) VALUES
+	    ('ONX-RND-BLK', 'Coasters',    'Onyx Round Coaster',          'Black',  3.50, NULL),
+	    ('ONX-SQR-GRN', 'Coasters',    'Onyx Square Coaster',         'Green',  3.75, NULL),
+	    ('MRB-ORN-WHT', 'Ornaments',   'Marble Ornament',             'White',  5.00, NULL),
+	    ('CHE-BOX-BRN', 'Boxes',       'Chess Storage Box',           'Brown', 12.00, 'Hinged lid'),
+	    ('CHE-BOX-BLK', 'Boxes',       'Chess Storage Box',           'Black', 12.00, 'Hinged lid')
+	ON CONFLICT (code) DO NOTHING;
+2026-06-29 14:21:28.155 CDT [19996] ERROR:  relation "orders" does not exist at character 13
+2026-06-29 14:21:28.155 CDT [19996] STATEMENT:  INSERT INTO orders (order_no, order_date, qty, color, source, platform, order_amount, sales_tax, comments) VALUES
+	    ('3786172159', '2024-03-15', 2, 'Black', 'Suaz-3', 'Etsy', 35.00,  2.80, NULL),
+	    ('3784939393', '2024-03-10', 1, 'Green', 'Suaz-3', 'Etsy', 18.50,  1.48, NULL),
+	    ('3747658570', '2024-02-28', 3, 'White', 'Suaz-3', 'Etsy', 52.00,  4.16, NULL)
+	ON CONFLICT (order_no) DO NOTHING;
+2026-06-29 14:21:28.159 CDT [19996] ERROR:  relation "shipment_header" does not exist at character 13
+2026-06-29 14:21:28.159 CDT [19996] STATEMENT:  INSERT INTO shipment_header (supplier_name, shipment_no, date_received, comments) VALUES
+	    ('AliExpress Supplier A', 'SHIP-2024-001', '2024-01-20', 'First batch of coasters'),
+	    ('AliExpress Supplier B', 'SHIP-2024-002', '2024-02-10', 'Chess boxes and ornaments')
+	ON CONFLICT DO NOTHING;
+2026-06-29 14:21:28.165 CDT [19996] ERROR:  relation "shipment_detail" does not exist at character 13
+2026-06-29 14:21:28.165 CDT [19996] STATEMENT:  INSERT INTO shipment_detail (shipment_header_id, description, sku, quantity, unit_price, comments) VALUES
+	    (1, 'Onyx Round Coaster',  'ONX-RND-BLK', 50,  3.50, NULL),
+	    (1, 'Onyx Square Coaster', 'ONX-SQR-GRN', 30,  3.75, NULL),
+	    (2, 'Marble Ornament',     'MRB-ORN-WHT', 20,  5.00, NULL),
+	    (2, 'Chess Storage Box',   'CHE-BOX-BRN', 10, 12.00, NULL),
+	    (2, 'Chess Storage Box',   'CHE-BOX-BLK', 10, 12.00, NULL);
+2026-06-29 14:21:28.171 CDT [19996] ERROR:  relation "payments" does not exist at character 13
+2026-06-29 14:21:28.171 CDT [19996] STATEMENT:  INSERT INTO payments (shipment_header_id, payment_date, description, amount, fee, comments) VALUES
+	    (1, '2024-01-18', 'AliExpress payment',  245.00, 3.50, 'Paid via PayPal'),
+	    (2, '2024-02-08', 'AliExpress payment',  460.00, 6.50, 'Paid via PayPal');
+2026-06-29 14:22:30.456 CDT [36224] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:22:30.456 CDT [36224] STATEMENT:  CREATE TABLE IF NOT EXISTS products (
+	    code        VARCHAR(100)    PRIMARY KEY,
+	    category    VARCHAR(255)    NOT NULL,
+	    description VARCHAR(255)    NOT NULL,
+	    color       VARCHAR(100)    NOT NULL,
+	    cost        NUMERIC(18, 2)  NOT NULL,
+	    comments    TEXT
+	);
+2026-06-29 14:22:30.462 CDT [36224] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:22:30.462 CDT [36224] STATEMENT:  CREATE TABLE IF NOT EXISTS orders (
+	    order_no        VARCHAR(100)    PRIMARY KEY,
+	    order_date      DATE            NOT NULL,
+	    qty             INTEGER         NOT NULL,
+	    color           VARCHAR(100),
+	    source          VARCHAR(100),
+	    platform        VARCHAR(100),
+	    order_amount    NUMERIC(18, 2),
+	    sales_tax       NUMERIC(18, 2),
+	    comments        TEXT
+	);
+2026-06-29 14:22:30.466 CDT [36224] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:22:30.466 CDT [36224] STATEMENT:  CREATE TABLE IF NOT EXISTS shipment_header (
+	    id              SERIAL          PRIMARY KEY,
+	    supplier_name   VARCHAR(255)    NOT NULL,
+	    shipment_no     VARCHAR(100)    NOT NULL,
+	    date_received   DATE            NOT NULL,
+	    comments        TEXT
+	);
+2026-06-29 14:22:30.471 CDT [36224] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:22:30.471 CDT [36224] STATEMENT:  CREATE TABLE IF NOT EXISTS shipment_detail (
+	    id                  SERIAL          PRIMARY KEY,
+	    shipment_header_id  INTEGER         NOT NULL
+	                            REFERENCES shipment_header(id) ON DELETE CASCADE,
+	    description         TEXT,
+	    sku                 VARCHAR(100),
+	    quantity            INTEGER,
+	    unit_price          NUMERIC(18, 2),
+	    comments            TEXT
+	);
+2026-06-29 14:22:30.477 CDT [36224] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:22:30.477 CDT [36224] STATEMENT:  CREATE TABLE IF NOT EXISTS payments (
+	    id                  SERIAL          PRIMARY KEY,
+	    shipment_header_id  INTEGER         NOT NULL
+	                            REFERENCES shipment_header(id) ON DELETE CASCADE,
+	    payment_date        DATE            NOT NULL,
+	    description         VARCHAR(100)    NOT NULL,
+	    amount              NUMERIC(18, 2)  NOT NULL,
+	    fee                 NUMERIC(18, 2)  NOT NULL,
+	    comments            TEXT
+	);
+2026-06-29 14:22:30.481 CDT [36224] ERROR:  permission denied for schema public at character 28
+2026-06-29 14:22:30.481 CDT [36224] STATEMENT:  CREATE TABLE IF NOT EXISTS suppliers (
+	    id              SERIAL          PRIMARY KEY,
+	    name            VARCHAR(255)    NOT NULL,
+	    contact_name    VARCHAR(255),
+	    email           VARCHAR(255),
+	    phone           VARCHAR(50),
+	    address         TEXT,
+	    comments        TEXT
+	);
+2026-06-29 14:22:30.827 CDT [31232] ERROR:  relation "products" does not exist at character 13
+2026-06-29 14:22:30.827 CDT [31232] STATEMENT:  INSERT INTO products (code, category, description, color, cost, comments) VALUES
+	    ('ONX-RND-BLK', 'Coasters',    'Onyx Round Coaster',          'Black',  3.50, NULL),
+	    ('ONX-SQR-GRN', 'Coasters',    'Onyx Square Coaster',         'Green',  3.75, NULL),
+	    ('MRB-ORN-WHT', 'Ornaments',   'Marble Ornament',             'White',  5.00, NULL),
+	    ('CHE-BOX-BRN', 'Boxes',       'Chess Storage Box',           'Brown', 12.00, 'Hinged lid'),
+	    ('CHE-BOX-BLK', 'Boxes',       'Chess Storage Box',           'Black', 12.00, 'Hinged lid')
+	ON CONFLICT (code) DO NOTHING;
+2026-06-29 14:22:30.835 CDT [31232] ERROR:  relation "orders" does not exist at character 13
+2026-06-29 14:22:30.835 CDT [31232] STATEMENT:  INSERT INTO orders (order_no, order_date, qty, color, source, platform, order_amount, sales_tax, comments) VALUES
+	    ('3786172159', '2024-03-15', 2, 'Black', 'Suaz-3', 'Etsy', 35.00,  2.80, NULL),
+	    ('3784939393', '2024-03-10', 1, 'Green', 'Suaz-3', 'Etsy', 18.50,  1.48, NULL),
+	    ('3747658570', '2024-02-28', 3, 'White', 'Suaz-3', 'Etsy', 52.00,  4.16, NULL)
+	ON CONFLICT (order_no) DO NOTHING;
+2026-06-29 14:22:30.842 CDT [31232] ERROR:  relation "shipment_header" does not exist at character 13
+2026-06-29 14:22:30.842 CDT [31232] STATEMENT:  INSERT INTO shipment_header (supplier_name, shipment_no, date_received, comments) VALUES
+	    ('AliExpress Supplier A', 'SHIP-2024-001', '2024-01-20', 'First batch of coasters'),
+	    ('AliExpress Supplier B', 'SHIP-2024-002', '2024-02-10', 'Chess boxes and ornaments')
+	ON CONFLICT DO NOTHING;
+2026-06-29 14:22:30.849 CDT [31232] ERROR:  relation "shipment_detail" does not exist at character 13
+2026-06-29 14:22:30.849 CDT [31232] STATEMENT:  INSERT INTO shipment_detail (shipment_header_id, description, sku, quantity, unit_price, comments) VALUES
+	    (1, 'Onyx Round Coaster',  'ONX-RND-BLK', 50,  3.50, NULL),
+	    (1, 'Onyx Square Coaster', 'ONX-SQR-GRN', 30,  3.75, NULL),
+	    (2, 'Marble Ornament',     'MRB-ORN-WHT', 20,  5.00, NULL),
+	    (2, 'Chess Storage Box',   'CHE-BOX-BRN', 10, 12.00, NULL),
+	    (2, 'Chess Storage Box',   'CHE-BOX-BLK', 10, 12.00, NULL);
+2026-06-29 14:22:30.856 CDT [31232] ERROR:  relation "payments" does not exist at character 13
+2026-06-29 14:22:30.856 CDT [31232] STATEMENT:  INSERT INTO payments (shipment_header_id, payment_date, description, amount, fee, comments) VALUES
+	    (1, '2024-01-18', 'AliExpress payment',  245.00, 3.50, 'Paid via PayPal'),
+	    (2, '2024-02-08', 'AliExpress payment',  460.00, 6.50, 'Paid via PayPal');
+2026-06-29 14:25:40.122 CDT [6856] LOG:  checkpoint starting: time
+2026-06-29 14:27:37.374 CDT [6856] LOG:  checkpoint complete: wrote 1072 buffers (6.5%), wrote 3 SLRU buffers; 1 WAL file(s) added, 0 removed, 0 recycled; write=116.882 s, sync=0.234 s, total=117.252 s; sync files=349, longest=0.005 s, average=0.001 s; distance=5151 kB, estimate=5151 kB; lsn=0/1CF9020, redo lsn=0/1CF8F90
+2026-06-29 14:35:40.420 CDT [6856] LOG:  checkpoint starting: time
+2026-06-29 14:35:40.536 CDT [6856] LOG:  checkpoint complete: wrote 1 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.101 s, sync=0.002 s, total=0.117 s; sync files=1, longest=0.002 s, average=0.002 s; distance=0 kB, estimate=4636 kB; lsn=0/1CF92C0, redo lsn=0/1CF9268
+2026-06-29 14:41:47.283 CDT [21720] FATAL:  database "saleas_manager" does not exist
+2026-06-29 14:41:47.487 CDT [12628] FATAL:  database "saleas_manager" does not exist
+2026-06-29 14:41:55.527 CDT [3480] FATAL:  database "saleas_manager" does not exist
+2026-06-29 14:41:55.715 CDT [15324] FATAL:  database "saleas_manager" does not exist
+2026-06-29 14:42:04.970 CDT [2688] FATAL:  database "saleas_manager" does not exist
+2026-06-29 14:42:05.175 CDT [5504] FATAL:  database "saleas_manager" does not exist
+2026-06-29 14:45:40.539 CDT [6856] LOG:  checkpoint starting: time
+2026-06-29 14:45:41.870 CDT [6856] LOG:  checkpoint complete: wrote 12 buffers (0.1%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=1.316 s, sync=0.006 s, total=1.332 s; sync files=8, longest=0.001 s, average=0.001 s; distance=59 kB, estimate=4178 kB; lsn=0/1D08190, redo lsn=0/1D08138
+2026-06-29 14:50:40.884 CDT [6856] LOG:  checkpoint starting: time
+2026-06-29 14:50:41.234 CDT [6856] LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.330 s, sync=0.003 s, total=0.351 s; sync files=3, longest=0.002 s, average=0.001 s; distance=9 kB, estimate=3761 kB; lsn=0/1D0A800, redo lsn=0/1D0A7A8
