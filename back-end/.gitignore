@@ -1,0 +1,16 @@
+# Ignore the sales-api/lib folder
+sales-api/lib/
+sales-api/Scripts/
+sales-api/Include/
+sales-api/Tools/
+sales-api/Docs/
+sales-api/PCBuild/
+sales-api/Tests/
+sales-api/Build/
+sales-api/BuildTools/
+sales-api/Packages/
+sales-api/ThirdPartyNotices.txt
+.env
+.venv/
+__pycache__/
+*.pyc
