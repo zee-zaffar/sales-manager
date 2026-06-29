@@ -33,6 +33,10 @@ utils/etsy_orders.csv
 utils/receipts.txt
 *.csv
 
+# PostgreSQL local database data and logs
+back-end/pgdata-local/
+back-end/pg_local.log
+
 # IDE / OS
 .vscode/
 .idea/
