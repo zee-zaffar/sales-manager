@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.csv_writer import open_csv_for_writing
 import requests
-from api.models import Total, Transaction, Receipt
+from business.models import Total, Transaction, Receipt
 
 load_dotenv()
 

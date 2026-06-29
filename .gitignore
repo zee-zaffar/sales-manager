@@ -1,4 +1,40 @@
-.env
-.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+pyvenv.cfg
+
+# Environment variables
+.env
+*.env
+
+# Sensitive runtime data
+tokens.json
+*.json.bak
+
+# TLS certificates / keys
+*.pfx
+*.pem
+*.key
+*.crt
+
+# Generated output / runtime data
+utils/etsy_orders.csv
+utils/receipts.txt
+*.csv
+
+# IDE / OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db

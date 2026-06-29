@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %} Suppliers {% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Suppliers</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSupplierModal">Add Supplier</button>
+    </div>
+
+    <div class="container">
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Contact</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Comments</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in suppliers %}
+                <tr>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.contact_name }}</td>
+                    <td>{{ s.email }}</td>
+                    <td>{{ s.phone }}</td>
+                    <td>{{ s.address }}</td>
+                    <td>{{ s.comments }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary"
+                            onclick="openEditModal({{ s.id }}, {{ s.name|tojson }}, {{ s.contact_name|tojson }}, {{ s.email|tojson }}, {{ s.phone|tojson }}, {{ s.address|tojson }}, {{ s.comments|tojson }})">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No suppliers found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Supplier Modal -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSupplierModalLabel">Add New Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSupplierForm">
+                    <div class="mb-3">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="add_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contact Name</label>
+                        <input type="text" class="form-control" id="add_contact_name" name="contact_name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="add_email" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="add_phone" name="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea class="form-control" id="add_address" name="address" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comments</label>
+                        <textarea class="form-control" id="add_comments" name="comments" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Supplier</button>
+                </form>
+                <div id="addSupplierMsg" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Supplier Modal -->
+<div class="modal fade" id="editSupplierModal" tabindex="-1" aria-labelledby="editSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSupplierModalLabel">Edit Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSupplierForm">
+                    <input type="hidden" id="edit_id">
+                    <div class="mb-3">
+                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="edit_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contact Name</label>
+                        <input type="text" class="form-control" id="edit_contact_name" name="contact_name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="edit_email" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="edit_phone" name="phone">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <textarea class="form-control" id="edit_address" name="address" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comments</label>
+                        <textarea class="form-control" id="edit_comments" name="comments" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+                <div id="editSupplierMsg" class="mt-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Open edit modal pre-filled with supplier data
+    function openEditModal(id, name, contact_name, email, phone, address, comments) {
+        document.getElementById('edit_id').value = id;
+        document.getElementById('edit_name').value = name || '';
+        document.getElementById('edit_contact_name').value = contact_name || '';
+        document.getElementById('edit_email').value = email || '';
+        document.getElementById('edit_phone').value = phone || '';
+        document.getElementById('edit_address').value = address || '';
+        document.getElementById('edit_comments').value = comments || '';
+        new bootstrap.Modal(document.getElementById('editSupplierModal')).show();
+    }
+
+    // Add supplier
+    document.getElementById('addSupplierForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const data = {
+            name:         document.getElementById('add_name').value,
+            contact_name: document.getElementById('add_contact_name').value,
+            email:        document.getElementById('add_email').value,
+            phone:        document.getElementById('add_phone').value,
+            address:      document.getElementById('add_address').value,
+            comments:     document.getElementById('add_comments').value
+        };
+        fetch('/suppliers/new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(res => {
+            const msg = document.getElementById('addSupplierMsg');
+            if (res.id) {
+                msg.innerHTML = '<div class="alert alert-success">Supplier added!</div>';
+                setTimeout(() => location.reload(), 800);
+            } else {
+                msg.innerHTML = '<div class="alert alert-danger">' + (res.error || 'Failed to add supplier.') + '</div>';
+            }
+        })
+        .catch(() => {
+            document.getElementById('addSupplierMsg').innerHTML = '<div class="alert alert-danger">Error occurred.</div>';
+        });
+    });
+
+    // Edit supplier
+    document.getElementById('editSupplierForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const id = document.getElementById('edit_id').value;
+        const data = {
+            name:         document.getElementById('edit_name').value,
+            contact_name: document.getElementById('edit_contact_name').value,
+            email:        document.getElementById('edit_email').value,
+            phone:        document.getElementById('edit_phone').value,
+            address:      document.getElementById('edit_address').value,
+            comments:     document.getElementById('edit_comments').value
+        };
+        fetch('/suppliers/' + id, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(r => r.json())
+        .then(res => {
+            const msg = document.getElementById('editSupplierMsg');
+            if (res.id) {
+                msg.innerHTML = '<div class="alert alert-success">Supplier updated!</div>';
+                setTimeout(() => location.reload(), 800);
+            } else {
+                msg.innerHTML = '<div class="alert alert-danger">' + (res.error || 'Failed to update supplier.') + '</div>';
+            }
+        })
+        .catch(() => {
+            document.getElementById('editSupplierMsg').innerHTML = '<div class="alert alert-danger">Error occurred.</div>';
+        });
+    });
+</script>
+{% endblock %}

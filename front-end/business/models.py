@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
@@ -33,12 +32,3 @@ class Receipt(BaseModel):
     class Config:
         extra = "allow"
 
-
-class AccessTokenResponse(BaseModel):
-    access_token: Optional[str] = None
-    token_type: Optional[str] = None
-    refresh_token: Optional[str] = None
-    expires_in: Optional[int] = None
-
-    class Config:
-        extra = "allow"
