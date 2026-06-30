@@ -1,6 +1,6 @@
 
 import os
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, redirect, render_template, request, url_for, Response
 import requests
 from dotenv import load_dotenv
 # from api.oauth_token import get_refresh_token
@@ -87,7 +87,7 @@ def shipment_details(shipment_id):
         response.raise_for_status()
         shipment = response.json()
 
-        response2 = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}/details")
+        response2 = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}/products")
         response2.raise_for_status()
         details = response2.json()
 
@@ -166,15 +166,26 @@ def submit_shipment():
 def new_payment(shipment_id):
     return render_template('payment_entry.html', shipment_id=shipment_id)
 
-# Update shipment detail
-@app.route('/shipments/<int:header_id>/details/update', methods=['POST'])
-def update_detail_modal(header_id):
+# Update shipment product
+@app.route('/shipments/<int:header_id>/products/update', methods=['POST'])
+def update_product_modal(header_id):
     data = request.get_json()
-    detail_id = data.pop('detail_id', None)
+    product_id = data.pop('product_id', None)
     try:
         response = requests.put(
-            f"{sales_manager_api_url}/shipments/{header_id}/details/{detail_id}",
+            f"{sales_manager_api_url}/shipments/{header_id}/products/{product_id}",
             json=data
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Delete shipment product
+@app.route('/shipments/<int:header_id>/products/<int:product_id>/delete', methods=['POST'])
+def delete_product_modal(header_id, product_id):
+    try:
+        response = requests.delete(
+            f"{sales_manager_api_url}/shipments/{header_id}/products/{product_id}"
         )
         return response.json(), response.status_code
     except Exception as e:
@@ -194,6 +205,17 @@ def update_payment_modal(header_id):
     except Exception as e:
         return {"error": str(e)}, 500
 
+# Delete payment
+@app.route('/shipments/<int:header_id>/payments/<int:payment_id>/delete', methods=['POST'])
+def delete_payment_modal(header_id, payment_id):
+    try:
+        response = requests.delete(
+            f"{sales_manager_api_url}/shipments/{header_id}/payments/{payment_id}"
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
 # Add new payment
 @app.route('/shipments/<int:shipment_header_id>/payments/add', methods=['POST'])
 def add_payment_modal(shipment_header_id):
@@ -206,13 +228,109 @@ def add_payment_modal(shipment_header_id):
     except Exception as e:
         return {"error": str(e)}, 500
 
-# Add new shipment detail
-@app.route('/shipments/<int:shipment_header_id>/details/add', methods=['POST'])
-def add_detail_modal(shipment_header_id):
+# Download CSV template for shipment products
+@app.route('/shipments/products/template', methods=['GET'])
+def download_products_template():
+    try:
+        response = requests.get(f"{sales_manager_api_url}/shipments/products/template")
+        return Response(
+            response.content,
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=shipment_products_template.csv'}
+        )
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Upload products CSV for a shipment
+@app.route('/shipments/<int:shipment_header_id>/products/upload', methods=['POST'])
+def upload_products_csv(shipment_header_id):
+    if 'file' not in request.files:
+        return {"error": "No file provided"}, 400
+    file = request.files['file']
     try:
         response = requests.post(
-            f"{sales_manager_api_url}/shipments/{shipment_header_id}/details",
+            f"{sales_manager_api_url}/shipments/{shipment_header_id}/products/upload",
+            files={'file': (file.filename, file.read(), file.content_type or 'text/csv')}
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Add shipment product
+@app.route('/shipments/<int:shipment_header_id>/products/add', methods=['POST'])
+def add_product_modal(shipment_header_id):
+    try:
+        response = requests.post(
+            f"{sales_manager_api_url}/shipments/{shipment_header_id}/products",
             json=request.get_json()
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Edit shipment header
+@app.route('/shipments/<int:shipment_id>/edit', methods=['POST'])
+def edit_shipment_header(shipment_id):
+    try:
+        response = requests.put(
+            f"{sales_manager_api_url}/shipments/{shipment_id}",
+            json=request.get_json()
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Delete shipment header
+@app.route('/shipments/<int:shipment_id>/delete', methods=['POST'])
+def delete_shipment(shipment_id):
+    try:
+        response = requests.delete(f"{sales_manager_api_url}/shipments/{shipment_id}")
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Get invoices for a shipment
+@app.route('/shipments/<int:shipment_id>/invoices', methods=['GET'])
+def get_invoices(shipment_id):
+    try:
+        response = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}/invoices")
+        response.raise_for_status()
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Add invoice
+@app.route('/shipments/<int:shipment_id>/invoices/add', methods=['POST'])
+def add_invoice(shipment_id):
+    try:
+        response = requests.post(
+            f"{sales_manager_api_url}/shipments/{shipment_id}/invoices",
+            json=request.get_json()
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Update invoice
+@app.route('/shipments/<int:header_id>/invoices/update', methods=['POST'])
+def update_invoice(header_id):
+    data = request.get_json()
+    invoice_id = data.pop('invoice_id', None)
+    try:
+        response = requests.put(
+            f"{sales_manager_api_url}/shipments/{header_id}/invoices/{invoice_id}",
+            json=data
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Delete invoice
+@app.route('/shipments/<int:header_id>/invoices/<int:invoice_id>/delete', methods=['POST'])
+def delete_invoice(header_id, invoice_id):
+    try:
+        response = requests.delete(
+            f"{sales_manager_api_url}/shipments/{header_id}/invoices/{invoice_id}"
         )
         return response.json(), response.status_code
     except Exception as e:

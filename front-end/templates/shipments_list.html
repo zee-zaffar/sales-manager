@@ -1,75 +1,94 @@
 {% extends 'base.html' %}
 
-{% block title %} Shipments {% endblock %}
+{% block title %}Shipments{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Shipments</h2>
-        <a href="/shipment/new" class="btn btn-primary">Add New Shipment</a>
-    </div>
+<div class="page-header">
+  <h1 class="page-title">Shipments</h1>
+  <a href="/shipment/new" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i> New Shipment
+  </a>
+</div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <input type="text" id="supplierFilter" class="form-control" placeholder="Filter by supplier name...">
-        </div>
-        <div class="col-md-6">
-            <input type="text" id="shipmentFilter" class="form-control" placeholder="Filter by shipment number...">
-        </div>
-    </div>
+<div class="row g-2 mb-3">
+  <div class="col-md-5">
+    <input type="text" id="supplierFilter" class="form-control"
+           placeholder="Filter by supplier…">
+  </div>
+  <div class="col-md-5">
+    <input type="text" id="shipmentFilter" class="form-control"
+           placeholder="Filter by shipment number…">
+  </div>
+</div>
 
-    <div class="container">
-        <table class="table table-striped" id="shipmentsTable">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Supplier Name</th>
-                    <th>Shipment No</th>
-                    <th>Date Received</th>
-                    <th>Comments</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for shipment in shipments %}
-                <tr>
-                    <td>{{ shipment.id }}</td>
-                    <td class="supplier-name">{{ shipment.supplier_name }}</td>
-                    <td class="shipment-no">{{ shipment.shipment_no }}</td>
-                    <td>{{ shipment.date_received }}</td>
-                    <td>{{ shipment.comments }}</td>
-                    <td><a href="/shipments/{{ shipment.id }}" class="btn btn-sm btn-outline-secondary">View</a></td>
-                </tr>
-                {% else %}
-                <tr><td colspan="6" class="text-center text-muted">No shipments found.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<div class="table-wrapper">
+  <table class="table table-striped" id="shipmentsTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Supplier</th>
+        <th>Shipment No</th>
+        <th>Date Received</th>
+        <th>Comments</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for shipment in shipments %}
+      <tr>
+        <td class="text-muted" style="width:60px;">{{ shipment.id }}</td>
+        <td class="supplier-name fw-500">{{ shipment.supplier_name }}</td>
+        <td class="shipment-no">{{ shipment.shipment_no }}</td>
+        <td>{{ shipment.date_received }}</td>
+        <td class="text-muted">{{ shipment.comments }}</td>
+        <td class="text-nowrap" style="width:120px;">
+          <a href="/shipments/{{ shipment.id }}" class="btn btn-sm btn-outline-secondary me-1">
+            <i class="bi bi-eye"></i> View
+          </a>
+          <button class="btn btn-sm btn-outline-danger"
+                  onclick="confirmDelete({{ shipment.id }})">
+            <i class="bi bi-trash"></i>
+          </button>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" class="text-center text-muted py-4">
+          <i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>
+          No shipments found.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 <script>
+function confirmDelete(id) {
+  if (!confirm('Delete this shipment and all its products, invoices, and payments?')) return;
+  fetch(`/shipments/${id}/delete`, { method: 'POST' })
+    .then(r => { if (!r.ok) throw r; return r.json(); })
+    .then(() => location.reload())
+    .catch(() => alert('Error deleting shipment.'));
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    const supplierFilter = document.getElementById('supplierFilter');
-    const shipmentFilter = document.getElementById('shipmentFilter');
-    const table = document.getElementById('shipmentsTable');
-    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+  const supF = document.getElementById('supplierFilter');
+  const shipF = document.getElementById('shipmentFilter');
+  const rows = document.querySelectorAll('#shipmentsTable tbody tr');
 
-    function filterTable() {
-        const supplierValue = supplierFilter.value.toLowerCase();
-        const shipmentValue = shipmentFilter.value.toLowerCase();
-        for (let i = 0; i < rows.length; i++) {
-            const supplierCell = rows[i].getElementsByClassName('supplier-name')[0];
-            const shipmentCell = rows[i].getElementsByClassName('shipment-no')[0];
-            if (!supplierCell || !shipmentCell) continue;
-            const supplierMatch = supplierCell.textContent.toLowerCase().includes(supplierValue);
-            const shipmentMatch = shipmentCell.textContent.toLowerCase().includes(shipmentValue);
-            rows[i].style.display = (supplierMatch && shipmentMatch) ? '' : 'none';
-        }
-    }
+  function filter() {
+    const sv = supF.value.toLowerCase();
+    const shv = shipF.value.toLowerCase();
+    rows.forEach(row => {
+      const sup  = (row.querySelector('.supplier-name')?.textContent || '').toLowerCase();
+      const ship = (row.querySelector('.shipment-no')?.textContent  || '').toLowerCase();
+      row.style.display = (sup.includes(sv) && ship.includes(shv)) ? '' : 'none';
+    });
+  }
 
-    supplierFilter.addEventListener('input', filterTable);
-    shipmentFilter.addEventListener('input', filterTable);
+  supF.addEventListener('input', filter);
+  shipF.addEventListener('input', filter);
 });
 </script>
 {% endblock %}

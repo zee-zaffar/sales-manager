@@ -26,8 +26,8 @@ INSERT INTO shipment_header (supplier_name, shipment_no, date_received, comments
     ('AliExpress Supplier B', 'SHIP-2024-002', '2024-02-10', 'Chess boxes and ornaments')
 ON CONFLICT DO NOTHING;
 
--- Shipment details  (referencing the two headers above by expected id 1 and 2)
-INSERT INTO shipment_detail (shipment_header_id, description, sku, quantity, unit_price, comments) VALUES
+-- Shipment products (referencing the two headers above by expected id 1 and 2)
+INSERT INTO shipment_products (shipment_header_id, description, sku, quantity, unit_price, comments) VALUES
     (1, 'Onyx Round Coaster',  'ONX-RND-BLK', 50,  3.50, NULL),
     (1, 'Onyx Square Coaster', 'ONX-SQR-GRN', 30,  3.75, NULL),
     (2, 'Marble Ornament',     'MRB-ORN-WHT', 20,  5.00, NULL),

@@ -1,7 +1,47 @@
-from flask import jsonify
-from db_models import ShipmentHeader, ShipmentDetail, Payment
+import csv
+import io
+from flask import jsonify, send_file
+from db_models import ShipmentHeader, ShipmentProduct, Payment, VendorInvoice
 from main import db
 from datetime import datetime
+
+CSV_COLUMNS = ['Description', 'SKU', 'Quantity', 'Unit Price', 'Comments']
+
+def get_products_csv_template():
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(CSV_COLUMNS)
+    writer.writerow(['Example Product Name', 'PROD-001', '10', '25.00', 'Optional notes'])
+    output.seek(0)
+    bytes_output = io.BytesIO(output.getvalue().encode('utf-8'))
+    return send_file(bytes_output, mimetype='text/csv', as_attachment=True, download_name='shipment_products_template.csv')
+
+def bulk_add_products(shipment_header_id: int, file_bytes: bytes):
+    content = file_bytes.decode('utf-8-sig')  # utf-8-sig strips Excel BOM
+    reader = csv.DictReader(io.StringIO(content))
+    added = 0
+    errors = []
+    for i, row in enumerate(reader, start=2):
+        desc = row.get('Description', '').strip()
+        sku  = row.get('SKU', '').strip()
+        if not desc and not sku:
+            continue  # skip blank rows
+        try:
+            product = ShipmentProduct(
+                shipment_header_id=shipment_header_id,
+                description=desc,
+                sku=sku,
+                quantity=int(row.get('Quantity', 0) or 0),
+                unit_price=float(row.get('Unit Price', 0) or 0),
+                comments=row.get('Comments', '').strip() or None
+            )
+            db.session.add(product)
+            added += 1
+        except Exception as e:
+            errors.append(f"Row {i}: {e}")
+    if added:
+        db.session.commit()
+    return {'added': added, 'errors': errors}
 
 def get_all_shipments_header():
     shipment_header = ShipmentHeader.query.all()
@@ -26,21 +66,21 @@ def get_shipment_by_header_id(shipment_header_id):
     })
 
 #Get shipment details by header id
-def get_shipment_details(shipment_header_id):
-    details = ShipmentDetail.query.filter_by(
+def get_shipment_products(shipment_header_id):
+    products = ShipmentProduct.query.filter_by(
         shipment_header_id=shipment_header_id
-    ).order_by(ShipmentDetail.description.asc()).all()
+    ).order_by(ShipmentProduct.description.asc()).all()
 
     return jsonify([
         {
-            'id': d.id,
-            'shipment_header_id': d.shipment_header_id,
-            'description': d.description,
-            'sku': d.sku,
-            'quantity': d.quantity,
-            'unit_price': float(d.unit_price),
-            'comments': d.comments
-        } for d in details
+            'id': p.id,
+            'shipment_header_id': p.shipment_header_id,
+            'description': p.description,
+            'sku': p.sku,
+            'quantity': p.quantity,
+            'unit_price': float(p.unit_price),
+            'comments': p.comments
+        } for p in products
     ])
 
 def add_shipment_header(data:any)->int:
@@ -54,74 +94,51 @@ def add_shipment_header(data:any)->int:
     db.session.commit()
     return shipment.id
 
-def add_new_shipment_detail(shipment_header_id, detail):
-    """
-    Accepts either a single detail dict or a list of detail dicts.
-    Returns a list of inserted detail IDs.
-    """
-    add_shipment_details = ShipmentDetail(
+def add_shipment_product(shipment_header_id, product):
+    new_product = ShipmentProduct(
         shipment_header_id=shipment_header_id,
-        description=detail.get('description'),
-        sku=detail.get('sku'),
-        quantity=detail.get('quantity'),
-        unit_price=detail.get('unit_price'),
-        comments=detail.get('comments')
+        description=product.get('description'),
+        sku=product.get('sku'),
+        quantity=product.get('quantity'),
+        unit_price=product.get('unit_price'),
+        comments=product.get('comments')
     )
 
-    db.session.add(add_shipment_details)      
+    db.session.add(new_product)
     db.session.commit()
 
-    return jsonify(shipment_header_id)
+    return new_product.id
 
-def edit_shipment_detail(detail_id: int, data):
-    """
-    Update a shipment detail by ID.
-    
-    Args:
-        detail_id (int): The ID of the shipment detail to update
-        
-    Returns:
-        JSON: Updated shipment detail data or error message
-    """
-
+def edit_shipment_product(product_id: int, data):
     try:
-        # Fetch the existing shipment detail
-        shipment_detail = ShipmentDetail.query.get(detail_id)
-        if not shipment_detail:
-            return {
-                "error": "Shipment detail not found",
-                "message": f"No shipment detail found with ID {detail_id}"
-            }, 40
+        product = ShipmentProduct.query.get(product_id)
+        if not product:
+            return {"error": f"Product {product_id} not found"}, 404
 
-        shipment_detail.description = data.get('description')
-        shipment_detail.sku = data.get('sku')
-        shipment_detail.quantity = data.get('quantity') 
-        shipment_detail.unit_price = data.get('unit_price')
-        shipment_detail.comments = data.get('comments')
- 
+        product.description = data.get('description')
+        product.sku = data.get('sku')
+        product.quantity = data.get('quantity')
+        product.unit_price = data.get('unit_price')
+        product.comments = data.get('comments')
+
         db.session.commit()
 
-     # Return the updated shipment detail
         return {
             "success": True,
-            "message": "Shipment detail updated successfully",
             "data": {
-                "id": shipment_detail.id,
-                "shipment_header_id": shipment_detail.shipment_header_id,
-                "description": shipment_detail.description,
-                "sku": shipment_detail.sku,
-                "quantity": shipment_detail.quantity,
-                "unit_price": float(shipment_detail.unit_price) if shipment_detail.unit_price else None,
-                "comments": shipment_detail.comments
+                "id": product.id,
+                "shipment_header_id": product.shipment_header_id,
+                "description": product.description,
+                "sku": product.sku,
+                "quantity": product.quantity,
+                "unit_price": float(product.unit_price) if product.unit_price else None,
+                "comments": product.comments
             }
         }, 200
 
     except Exception as e:
-    # Rollback in case of error
-        return {
-            "error": "Internal server error",
-            "message": f"Failed to update shipment detail: {str(e)}"
-        }, 500
+        db.session.rollback()
+        return {"error": f"Failed to update product: {str(e)}"}, 500
 
 def get_all_payments():
     payments = Payment.query.all()
@@ -164,10 +181,114 @@ def add_new_payment(shipment_header_id,data)->int:
         comments=data.get('comments')
     )
 
-    db.session.add(payment)      
+    db.session.add(payment)
     db.session.commit()
 
-    return jsonify(payment.id)
+    return payment.id
+
+def delete_shipment_header(shipment_header_id: int):
+    shipment = ShipmentHeader.query.get(shipment_header_id)
+    if not shipment:
+        return {"error": "Shipment not found"}, 404
+    db.session.delete(shipment)
+    db.session.commit()
+    return {"success": True}, 200
+
+def edit_shipment_header(shipment_header_id: int, data):
+    shipment = ShipmentHeader.query.get(shipment_header_id)
+    if not shipment:
+        return {"error": "Shipment not found"}, 404
+    shipment.supplier_name = data.get('supplier_name', shipment.supplier_name)
+    shipment.shipment_no = data.get('shipment_no', shipment.shipment_no)
+    shipment.date_received = data.get('date_received', shipment.date_received)
+    shipment.comments = data.get('comments', shipment.comments)
+    db.session.commit()
+    return {
+        "success": True,
+        "data": {
+            "id": shipment.id,
+            "supplier_name": shipment.supplier_name,
+            "shipment_no": shipment.shipment_no,
+            "date_received": shipment.date_received.isoformat(),
+            "comments": shipment.comments
+        }
+    }, 200
+
+def delete_shipment_product(product_id: int):
+    product = ShipmentProduct.query.get(product_id)
+    if not product:
+        return {"error": "Product not found"}, 404
+    db.session.delete(product)
+    db.session.commit()
+    return {"success": True}, 200
+
+def delete_payment(payment_id: int):
+    payment = Payment.query.get(payment_id)
+    if not payment:
+        return {"error": "Payment not found"}, 404
+    db.session.delete(payment)
+    db.session.commit()
+    return {"success": True}, 200
+
+def get_invoices_by_shipment(shipment_header_id: int):
+    invoices = VendorInvoice.query.filter_by(
+        shipment_header_id=shipment_header_id
+    ).order_by(VendorInvoice.invoice_date.asc()).all()
+    return jsonify([
+        {
+            'id': i.id,
+            'shipment_header_id': i.shipment_header_id,
+            'invoice_no': i.invoice_no,
+            'invoice_date': i.invoice_date.isoformat(),
+            'description': i.description,
+            'amount': float(i.amount),
+            'comments': i.comments
+        } for i in invoices
+    ])
+
+def add_invoice(shipment_header_id: int, data) -> int:
+    invoice = VendorInvoice(
+        shipment_header_id=shipment_header_id,
+        invoice_no=data['invoice_no'],
+        invoice_date=data['invoice_date'],
+        description=data.get('description'),
+        amount=data['amount'],
+        comments=data.get('comments')
+    )
+    db.session.add(invoice)
+    db.session.commit()
+    return invoice.id
+
+def edit_invoice(invoice_id: int, data):
+    invoice = VendorInvoice.query.get(invoice_id)
+    if not invoice:
+        return {"error": "Invoice not found"}, 404
+    invoice.invoice_no = data.get('invoice_no', invoice.invoice_no)
+    invoice.invoice_date = datetime.strptime(data.get('invoice_date'), '%Y-%m-%d').date()
+    invoice.description = data.get('description', invoice.description)
+    invoice.amount = data.get('amount', invoice.amount)
+    invoice.comments = data.get('comments', invoice.comments)
+    db.session.commit()
+    return {
+        "success": True,
+        "data": {
+            "id": invoice.id,
+            "shipment_header_id": invoice.shipment_header_id,
+            "invoice_no": invoice.invoice_no,
+            "invoice_date": invoice.invoice_date.isoformat(),
+            "description": invoice.description,
+            "amount": float(invoice.amount),
+            "comments": invoice.comments
+        }
+    }, 200
+
+def delete_invoice(invoice_id: int):
+    invoice = VendorInvoice.query.get(invoice_id)
+    if not invoice:
+        return {"error": "Invoice not found"}, 404
+    db.session.delete(invoice)
+    db.session.commit()
+    return {"success": True}, 200
 
 def edit_payment(payment_id: int, data):
     """

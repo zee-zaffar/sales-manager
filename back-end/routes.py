@@ -1,7 +1,15 @@
 from main import app
-from flask import request, jsonify
+from flask import request, jsonify, send_file
 from products import get_all_products, add_new_product
-from shipments import get_all_shipments_header, get_all_payments, get_payments_by_shipment_header_id, get_shipment_by_header_id, add_shipment_header, add_new_shipment_detail, get_shipment_details, add_new_payment, edit_shipment_detail, edit_payment
+from shipments import (
+    get_all_shipments_header, get_all_payments, get_payments_by_shipment_header_id,
+    get_shipment_by_header_id, add_shipment_header, add_shipment_product,
+    get_shipment_products, add_new_payment, edit_shipment_product, edit_payment,
+    delete_shipment_header, edit_shipment_header,
+    delete_shipment_product, delete_payment,
+    get_invoices_by_shipment, add_invoice, edit_invoice, delete_invoice,
+    get_products_csv_template, bulk_add_products
+)
 from orders import get_orders, insert_order, get_order_by_no, update_order
 from etsy import get_receipt
 from api_models import Receipt
@@ -44,36 +52,47 @@ def add_new_shipment():
     shipment_header_id = shipment_header_id =  add_shipment_header(payload)
     print ("New Shipment Header ID:", shipment_header_id)
 
-    # Loop through details and add each one
-    for shipment_detail in payload.get('Details'):
-        add_new_shipment_detail(shipment_header_id, shipment_detail)
+    for product in payload.get('Details'):
+        add_shipment_product(shipment_header_id, product)
   
     return jsonify({'id': shipment_header_id}), 201
 
 @app.route('/shipments/<int:shipment_header_id>', methods=['GET'])
 def get_shipment(shipment_header_id):
-   return get_shipment_by_header_id(shipment_header_id)
+    return get_shipment_by_header_id(shipment_header_id)
 
-#Get shipment details by header id
-@app.route('/shipments/<int:shipment_header_id>/details', methods=['GET'])
-def shipment_details(shipment_header_id:int):
-    return get_shipment_details(shipment_header_id)
+@app.route('/shipments/<int:shipment_header_id>', methods=['PUT'])
+def update_shipment(shipment_header_id):
+    data = request.json
+    result, status_code = edit_shipment_header(shipment_header_id, data)
+    return jsonify(result), status_code
 
-# Add new shipment detail
-@app.route('/shipments/<int:shipment_header_id>/details', methods=['POST'])
-def add_shipment_detail(shipment_header_id: int):
-    shipment_detail = request.json
-    return add_new_shipment_detail(shipment_header_id, shipment_detail)
+@app.route('/shipments/<int:shipment_header_id>', methods=['DELETE'])
+def delete_shipment(shipment_header_id):
+    result, status_code = delete_shipment_header(shipment_header_id)
+    return jsonify(result), status_code
 
-# Update shipment detail
-@app.route('/shipments/<int:header_id>/details/<int:detail_id>', methods=['PUT'])
-def update_shipment_detail(header_id: int, detail_id: int):
+# Get shipment products
+@app.route('/shipments/<int:shipment_header_id>/products', methods=['GET'])
+def shipment_products(shipment_header_id: int):
+    return get_shipment_products(shipment_header_id)
 
-    # Get the update data from request
-    update_data = request.json
+# Add shipment product
+@app.route('/shipments/<int:shipment_header_id>/products', methods=['POST'])
+def add_shipment_product_route(shipment_header_id: int):
+    product_id = add_shipment_product(shipment_header_id, request.json)
+    return jsonify({'id': product_id}), 201
 
-    result, status_code = edit_shipment_detail(detail_id, update_data)
+# Delete shipment product
+@app.route('/shipments/<int:header_id>/products/<int:product_id>', methods=['DELETE'])
+def remove_shipment_product(header_id: int, product_id: int):  # noqa: ARG001
+    result, status_code = delete_shipment_product(product_id)
+    return jsonify(result), status_code
 
+# Update shipment product
+@app.route('/shipments/<int:header_id>/products/<int:product_id>', methods=['PUT'])
+def update_shipment_product(header_id: int, product_id: int):  # noqa: ARG001
+    result, status_code = edit_shipment_product(product_id, request.json)
     return jsonify(result), status_code
 
 # Add new payment
@@ -82,6 +101,11 @@ def add_payment(shipment_header_id: int):
     payment = request.json
     payment_id = add_new_payment(shipment_header_id, payment)
     return jsonify({'id': payment_id}), 201
+
+@app.route('/shipments/<int:header_id>/payments/<int:payment_id>', methods=['DELETE'])
+def remove_payment(header_id: int, payment_id: int):  # noqa: ARG001
+    result, status_code = delete_payment(payment_id)
+    return jsonify(result), status_code
 
 # Update payment
 @app.route('/shipments/<int:header_id>/payments/<int:payment_id>', methods=['PUT'])
@@ -125,6 +149,43 @@ def add_product():
     print("Received data for new product:", data)
     product_code =  add_new_product(data)
     return jsonify({'product_code': product_code}), 201
+
+# CSV template download for shipment products
+@app.route('/shipments/products/template', methods=['GET'])
+def products_csv_template():
+    return get_products_csv_template()
+
+# Bulk upload products from CSV
+@app.route('/shipments/<int:shipment_header_id>/products/upload', methods=['POST'])
+def upload_products_csv(shipment_header_id: int):
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    file = request.files['file']
+    if not file.filename.lower().endswith('.csv'):
+        return jsonify({'error': 'File must be a .csv'}), 400
+    result = bulk_add_products(shipment_header_id, file.read())
+    return jsonify(result), 200
+
+# Invoice routes
+@app.route('/shipments/<int:shipment_header_id>/invoices', methods=['GET'])
+def get_invoices(shipment_header_id: int):
+    return get_invoices_by_shipment(shipment_header_id)
+
+@app.route('/shipments/<int:shipment_header_id>/invoices', methods=['POST'])
+def add_invoice_route(shipment_header_id: int):
+    data = request.json
+    invoice_id = add_invoice(shipment_header_id, data)
+    return jsonify({'id': invoice_id}), 201
+
+@app.route('/shipments/<int:header_id>/invoices/<int:invoice_id>', methods=['PUT'])
+def update_invoice(header_id: int, invoice_id: int):  # noqa: ARG001
+    result, status_code = edit_invoice(invoice_id, request.json)
+    return jsonify(result), status_code
+
+@app.route('/shipments/<int:header_id>/invoices/<int:invoice_id>', methods=['DELETE'])
+def remove_invoice(header_id: int, invoice_id: int):  # noqa: ARG001
+    result, status_code = delete_invoice(invoice_id)
+    return jsonify(result), status_code
 
 # Supplier routes
 @app.route('/suppliers', methods=['GET'])

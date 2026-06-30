@@ -36,8 +36,8 @@ CREATE TABLE IF NOT EXISTS shipment_header (
     comments        TEXT
 );
 
--- Shipment line items
-CREATE TABLE IF NOT EXISTS shipment_detail (
+-- Shipment products (line items received in a shipment)
+CREATE TABLE IF NOT EXISTS shipment_products (
     id                  SERIAL          PRIMARY KEY,
     shipment_header_id  INTEGER         NOT NULL
                             REFERENCES shipment_header(id) ON DELETE CASCADE,
@@ -45,6 +45,18 @@ CREATE TABLE IF NOT EXISTS shipment_detail (
     sku                 VARCHAR(100),
     quantity            INTEGER,
     unit_price          NUMERIC(18, 2),
+    comments            TEXT
+);
+
+-- Vendor invoices against a shipment
+CREATE TABLE IF NOT EXISTS vendor_invoices (
+    id                  SERIAL          PRIMARY KEY,
+    shipment_header_id  INTEGER         NOT NULL
+                            REFERENCES shipment_header(id) ON DELETE CASCADE,
+    invoice_no          VARCHAR(100)    NOT NULL,
+    invoice_date        DATE            NOT NULL,
+    description         VARCHAR(255),
+    amount              NUMERIC(18, 2)  NOT NULL,
     comments            TEXT
 );
 

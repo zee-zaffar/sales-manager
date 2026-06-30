@@ -1,412 +1,839 @@
 {% extends 'base.html' %}
 
-{% block title %} Shipment Details {% endblock %}
+{% block title %}Shipment {{ shipment.shipment_no }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="mb-0">Shipment Details</h2>
-        <a href="/shipments" class="btn btn-outline-secondary">Back to Shipments</a>
-    </div>
-
-    <!-- Shipment Header -->
-    <div class="card mb-4">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Shipment Header</h5>
-        </div>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item"><strong>Supplier Name:</strong> {{ shipment.supplier_name }}</li>
-            <li class="list-group-item"><strong>Shipment No:</strong> {{ shipment.shipment_no }}</li>
-            <li class="list-group-item"><strong>Date Received:</strong> {{ shipment.date_received }}</li>
-            <li class="list-group-item"><strong>Comments:</strong> {{ shipment.comments }}</li>
-        </ul>
-    </div>
-
-    <!-- Shipment Details -->
-    <div class="card mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Shipment Details</h5>
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addShipmentDetailModal">
-                Add Detail
-            </button>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Description</th>
-                        <th>SKU</th>
-                        <th>Qty</th>
-                        <th>Unit Price</th>
-                        <th>Total</th>
-                        <th>Comments</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for detail in details %}
-                    {% set row_total = detail.quantity * detail.unit_price %}
-                    <tr>
-                        <td>{{ detail.id }}</td>
-                        <td>{{ detail.description }}</td>
-                        <td>{{ detail.sku }}</td>
-                        <td>{{ detail.quantity }}</td>
-                        <td>${{ '%.2f' % detail.unit_price }}</td>
-                        <td>${{ '%.2f' % row_total }}</td>
-                        <td>{{ detail.comments }}</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-outline-secondary"
-                                onclick="openEditDetailModal({{ detail.id }}, {{ detail.description|tojson }}, {{ detail.sku|tojson }}, {{ detail.quantity }}, {{ detail.unit_price }}, {{ detail.comments|tojson }})">
-                                Edit
-                            </button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="8" class="text-center text-muted">No details yet.</td></tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="6" class="text-end">Grand Total:</th>
-                        <th colspan="2">${{ '%.2f' % details_grand_total }}</th>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
-
-    <!-- Payments -->
-    <div class="card mb-4">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Payments</h5>
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
-                Add Payment
-            </button>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered align-middle mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Payment Date</th>
-                        <th>Description</th>
-                        <th>Amount</th>
-                        <th>Fee</th>
-                        <th>Total</th>
-                        <th>Comments</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for payment in payments %}
-                    {% set payment_total = payment.amount + payment.fee %}
-                    <tr>
-                        <td>{{ payment.id }}</td>
-                        <td>{{ payment.payment_date }}</td>
-                        <td>{{ payment.description }}</td>
-                        <td>${{ '%.2f' % payment.amount }}</td>
-                        <td>${{ '%.2f' % payment.fee }}</td>
-                        <td>${{ '%.2f' % payment_total }}</td>
-                        <td>{{ payment.comments }}</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-outline-secondary"
-                                onclick="openEditPaymentModal('{{ payment.id }}', '{{ payment.payment_date }}', {{ payment.description|tojson }}, '{{ payment.amount }}', '{{ payment.fee }}', {{ payment.comments|tojson }})">
-                                Edit
-                            </button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="8" class="text-center text-muted">No payments yet.</td></tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="7" class="text-end">Grand Total:</th>
-                        <th>${{ '%.2f' % payments_grand_total }}</th>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </div>
+<!-- Page header -->
+<div class="page-header">
+  <div>
+    <a href="/shipments" class="btn btn-sm btn-outline-secondary mb-2">
+      <i class="bi bi-arrow-left me-1"></i> Shipments
+    </a>
+    <h1 class="page-title">Shipment <span style="color:var(--color-primary);">{{ shipment.shipment_no }}</span></h1>
+  </div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary btn-sm"
+            data-bs-toggle="modal" data-bs-target="#editHeaderModal">
+      <i class="bi bi-pencil me-1"></i> Edit
+    </button>
+    <button type="button" class="btn btn-outline-danger btn-sm"
+            onclick="confirmDeleteShipment()">
+      <i class="bi bi-trash me-1"></i> Delete
+    </button>
+  </div>
 </div>
 
-<!-- Add Shipment Detail Modal -->
-<div class="modal fade" id="addShipmentDetailModal" tabindex="-1" aria-labelledby="addDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addDetailModalLabel">Add Shipment Detail</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="addDetailForm">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <input id="detailDescription" type="text" class="form-control" maxlength="255" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">SKU</label>
-                        <input id="detailSKU" type="text" class="form-control" maxlength="100" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Quantity</label>
-                        <input id="detailQuantity" type="number" min="1" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Unit Price</label>
-                        <input id="detailUnitPrice" type="number" step="0.01" min="0" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Comments</label>
-                        <textarea id="detailComments" class="form-control" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div id="addDetailMsg" class="me-auto"></div>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Save Detail</button>
-                </div>
-            </form>
-        </div>
-    </div>
+<!-- Shipment meta strip -->
+<div class="detail-meta">
+  <div class="detail-meta-item">
+    <label>Supplier</label>
+    <span id="hdrSupplier">{{ shipment.supplier_name }}</span>
+  </div>
+  <div class="detail-meta-item">
+    <label>Shipment No</label>
+    <span id="hdrShipmentNo">{{ shipment.shipment_no }}</span>
+  </div>
+  <div class="detail-meta-item">
+    <label>Date Received</label>
+    <span id="hdrDate">{{ shipment.date_received }}</span>
+  </div>
+  <div class="detail-meta-item">
+    <label>Comments</label>
+    <span id="hdrComments">{{ shipment.comments or '—' }}</span>
+  </div>
 </div>
 
-<!-- Edit Shipment Detail Modal -->
-<div class="modal fade" id="editShipmentDetailModal" tabindex="-1" aria-labelledby="editDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editDetailModalLabel">Edit Shipment Detail</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="editDetailForm">
-                <div class="modal-body">
-                    <input type="hidden" id="editDetailId">
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <input id="editDetailDescription" type="text" class="form-control" maxlength="255" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">SKU</label>
-                        <input id="editDetailSKU" type="text" class="form-control" maxlength="100" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Quantity</label>
-                        <input id="editDetailQuantity" type="number" min="1" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Unit Price</label>
-                        <input id="editDetailUnitPrice" type="number" step="0.01" min="0" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Comments</label>
-                        <textarea id="editDetailComments" class="form-control" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div id="editDetailMsg" class="me-auto"></div>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Detail</button>
-                </div>
-            </form>
-        </div>
+<!-- ── Products ── -->
+<div class="panel">
+  <div class="panel-header">
+    <h2 class="panel-title"><i class="bi bi-box-seam me-2 text-primary"></i>Products</h2>
+    <div class="d-flex gap-2 align-items-center">
+      <a href="/shipments/products/template" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-download me-1"></i> Template
+      </a>
+      <button type="button" class="btn btn-outline-secondary btn-sm"
+              onclick="document.getElementById('csvFileInput').click()">
+        <i class="bi bi-upload me-1"></i> Upload CSV
+      </button>
+      <input type="file" id="csvFileInput" accept=".csv" class="d-none">
+      <button type="button" class="btn btn-primary btn-sm"
+              data-bs-toggle="modal" data-bs-target="#addProductModal">
+        <i class="bi bi-plus-lg me-1"></i> Add Product
+      </button>
     </div>
+  </div>
+  <div id="csvUploadResult" class="px-3 pt-2" style="display:none;"></div>
+  <div class="panel-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Description</th>
+          <th>SKU</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>Total</th>
+          <th>Comments</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for detail in details %}
+        {% set row_total = detail.quantity * detail.unit_price %}
+        <tr>
+          <td class="text-muted" style="width:55px;">{{ detail.id }}</td>
+          <td>{{ detail.description }}</td>
+          <td>{{ detail.sku }}</td>
+          <td>{{ detail.quantity }}</td>
+          <td>${{ '%.2f' % detail.unit_price }}</td>
+          <td class="fw-semibold">${{ '%.2f' % row_total }}</td>
+          <td class="text-muted">{{ detail.comments }}</td>
+          <td class="text-nowrap" style="width:110px;">
+            <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+              onclick='openEditDetailModal({{ detail.id }}, {{ detail.description|tojson }}, {{ detail.sku|tojson }}, {{ detail.quantity }}, {{ detail.unit_price }}, {{ detail.comments|tojson }})'>
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger"
+              onclick="confirmDeleteDetail({{ detail.id }})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">
+            <i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>No products yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="grand-total-row">
+          <td colspan="5" class="text-end fw-semibold">Grand Total</td>
+          <td class="fw-bold">${{ '%.2f' % details_grand_total }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- ── Vendor Invoices ── -->
+<div class="panel">
+  <div class="panel-header">
+    <h2 class="panel-title"><i class="bi bi-file-earmark-text me-2 text-success"></i>Vendor Invoices</h2>
+    <button type="button" class="btn btn-primary btn-sm"
+            data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+      <i class="bi bi-plus-lg me-1"></i> Add Invoice
+    </button>
+  </div>
+  <div class="panel-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Invoice No</th>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Comments</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="invoicesTableBody">
+        <tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr>
+      </tbody>
+      <tfoot>
+        <tr class="grand-total-row">
+          <td colspan="4" class="text-end fw-semibold">Grand Total</td>
+          <td class="fw-bold" id="invoicesGrandTotal">$0.00</td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- ── Payments ── -->
+<div class="panel">
+  <div class="panel-header">
+    <h2 class="panel-title"><i class="bi bi-credit-card me-2 text-warning"></i>Payments</h2>
+    <button type="button" class="btn btn-primary btn-sm"
+            data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+      <i class="bi bi-plus-lg me-1"></i> Add Payment
+    </button>
+  </div>
+  <div class="panel-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Fee</th>
+          <th>Total</th>
+          <th>Comments</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in payments %}
+        {% set payment_total = payment.amount + payment.fee %}
+        <tr>
+          <td class="text-muted" style="width:55px;">{{ payment.id }}</td>
+          <td>{{ payment.payment_date }}</td>
+          <td>{{ payment.description }}</td>
+          <td>${{ '%.2f' % payment.amount }}</td>
+          <td>${{ '%.2f' % payment.fee }}</td>
+          <td class="fw-semibold">${{ '%.2f' % payment_total }}</td>
+          <td class="text-muted">{{ payment.comments }}</td>
+          <td class="text-nowrap" style="width:110px;">
+            <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+              onclick='openEditPaymentModal({{ payment.id }}, "{{ payment.payment_date }}", {{ payment.description|tojson }}, {{ payment.amount }}, {{ payment.fee }}, {{ payment.comments|tojson }})'>
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger"
+              onclick="confirmDeletePayment({{ payment.id }})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">
+            <i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>No payments yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="grand-total-row">
+          <td colspan="5" class="text-end fw-semibold">Grand Total</td>
+          <td class="fw-bold">${{ '%.2f' % payments_grand_total }}</td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ MODALS ═══ -->
+
+<!-- Edit Shipment Header Modal -->
+<div class="modal fade" id="editHeaderModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Shipment Header</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editHeaderForm">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Supplier Name</label>
+              <input id="editHdrSupplier" type="text" class="form-control"
+                     value="{{ shipment.supplier_name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Shipment No</label>
+              <input id="editHdrShipmentNo" type="text" class="form-control"
+                     value="{{ shipment.shipment_no }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date Received</label>
+              <input id="editHdrDate" type="date" class="form-control"
+                     value="{{ shipment.date_received }}" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Comments</label>
+              <textarea id="editHdrComments" class="form-control" rows="2">{{ shipment.comments }}</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div id="editHeaderMsg" class="me-auto small"></div>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="addDetailForm">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <input id="detailDescription" type="text" class="form-control" maxlength="255" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">SKU</label>
+              <input id="detailSKU" type="text" class="form-control" maxlength="100" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Quantity</label>
+              <input id="detailQuantity" type="number" min="1" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Unit Price</label>
+              <input id="detailUnitPrice" type="number" step="0.01" min="0" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Comments</label>
+              <textarea id="detailComments" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div id="addDetailMsg" class="me-auto small"></div>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Product</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editDetailForm">
+        <div class="modal-body">
+          <input type="hidden" id="editDetailId">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <input id="editDetailDescription" type="text" class="form-control" maxlength="255" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">SKU</label>
+              <input id="editDetailSKU" type="text" class="form-control" maxlength="100" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Quantity</label>
+              <input id="editDetailQuantity" type="number" min="1" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Unit Price</label>
+              <input id="editDetailUnitPrice" type="number" step="0.01" min="0" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Comments</label>
+              <textarea id="editDetailComments" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div id="editDetailMsg" class="me-auto small"></div>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Invoice Modal -->
+<div class="modal fade" id="addInvoiceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Vendor Invoice</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="addInvoiceForm">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Invoice No</label>
+              <input id="invoiceNo" type="text" class="form-control" maxlength="100" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Invoice Date</label>
+              <input id="invoiceDate" type="date" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <input id="invoiceDescription" type="text" class="form-control" maxlength="255">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Amount</label>
+              <input id="invoiceAmount" type="number" step="0.01" min="0" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Comments</label>
+              <textarea id="invoiceComments" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div id="addInvoiceMsg" class="me-auto small"></div>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Invoice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Invoice Modal -->
+<div class="modal fade" id="editInvoiceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Vendor Invoice</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editInvoiceForm">
+        <div class="modal-body">
+          <input type="hidden" id="editInvoiceId">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Invoice No</label>
+              <input id="editInvoiceNo" type="text" class="form-control" maxlength="100" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Invoice Date</label>
+              <input id="editInvoiceDate" type="date" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <input id="editInvoiceDescription" type="text" class="form-control" maxlength="255">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Amount</label>
+              <input id="editInvoiceAmount" type="number" step="0.01" min="0" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Comments</label>
+              <textarea id="editInvoiceComments" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div id="editInvoiceMsg" class="me-auto small"></div>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Invoice</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <!-- Add Payment Modal -->
-<div class="modal fade" id="addPaymentModal" tabindex="-1" aria-labelledby="addPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addPaymentModalLabel">Add Payment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="addPaymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Payment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="addPaymentForm">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Payment Date</label>
+              <input id="paymentDate" type="date" class="form-control" required>
             </div>
-            <form id="addPaymentForm">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Payment Date</label>
-                        <input id="paymentDate" type="date" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <input id="paymentDescription" type="text" class="form-control" maxlength="255">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Amount</label>
-                        <input id="paymentAmount" type="number" step="0.01" min="0" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fee</label>
-                        <input id="paymentFee" type="number" step="0.01" min="0" class="form-control" value="0.00">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Comments</label>
-                        <textarea id="paymentComments" class="form-control" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div id="addPaymentMsg" class="me-auto"></div>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Save Payment</button>
-                </div>
-            </form>
+            <div class="col-md-6">
+              <label class="form-label">Description</label>
+              <input id="paymentDescription" type="text" class="form-control" maxlength="255">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Amount</label>
+              <input id="paymentAmount" type="number" step="0.01" min="0" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fee</label>
+              <input id="paymentFee" type="number" step="0.01" min="0" class="form-control" value="0.00">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Comments</label>
+              <textarea id="paymentComments" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
         </div>
+        <div class="modal-footer">
+          <div id="addPaymentMsg" class="me-auto small"></div>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Payment</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 
 <!-- Edit Payment Modal -->
-<div class="modal fade" id="editPaymentModal" tabindex="-1" aria-labelledby="editPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editPaymentModalLabel">Edit Payment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="editPaymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Payment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editPaymentForm">
+        <div class="modal-body">
+          <input type="hidden" id="editPaymentId">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Payment Date</label>
+              <input id="editPaymentDate" type="date" class="form-control" required>
             </div>
-            <form id="editPaymentForm">
-                <div class="modal-body">
-                    <input type="hidden" id="editPaymentId">
-                    <div class="mb-3">
-                        <label class="form-label">Payment Date</label>
-                        <input id="editPaymentDate" type="date" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <input id="editPaymentDescription" type="text" class="form-control" maxlength="255">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Amount</label>
-                        <input id="editPaymentAmount" type="number" step="0.01" min="0" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Fee</label>
-                        <input id="editPaymentFee" type="number" step="0.01" min="0" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Comments</label>
-                        <textarea id="editPaymentComments" class="form-control" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <div id="editPaymentMsg" class="me-auto"></div>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Payment</button>
-                </div>
-            </form>
+            <div class="col-md-6">
+              <label class="form-label">Description</label>
+              <input id="editPaymentDescription" type="text" class="form-control" maxlength="255">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Amount</label>
+              <input id="editPaymentAmount" type="number" step="0.01" min="0" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Fee</label>
+              <input id="editPaymentFee" type="number" step="0.01" min="0" class="form-control">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Comments</label>
+              <textarea id="editPaymentComments" class="form-control" rows="2"></textarea>
+            </div>
+          </div>
         </div>
+        <div class="modal-footer">
+          <div id="editPaymentMsg" class="me-auto small"></div>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Payment</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 
 <script>
-    const shipmentId = {{ shipment.id }};
+const shipmentId = {{ shipment.id }};
 
-    function showMsg(elId, text, type) {
-        const el = document.getElementById(elId);
-        if (el) el.innerHTML = `<div class="alert alert-${type} py-1 mb-0 small">${text}</div>`;
-    }
+function showMsg(elId, text, type) {
+  const el = document.getElementById(elId);
+  if (el) el.innerHTML = `<div class="alert alert-${type} py-1 mb-0">${text}</div>`;
+}
 
-    // Set today's date when Add Payment modal opens
-    document.getElementById('addPaymentModal').addEventListener('show.bs.modal', function () {
-        this.querySelector('form').reset();
-        document.getElementById('paymentDate').value = new Date().toISOString().slice(0, 10);
+// ── Invoices ──────────────────────────────────────────────────────────────────
+
+const invoiceStore = {};
+
+function loadInvoices() {
+  fetch(`/shipments/${shipmentId}/invoices`)
+    .then(r => r.json())
+    .then(invoices => {
+      const tbody = document.getElementById('invoicesTableBody');
+      if (!invoices.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>No invoices yet.</td></tr>';
+        document.getElementById('invoicesGrandTotal').textContent = '$0.00';
+        return;
+      }
+      let total = 0;
+      invoices.forEach(inv => { invoiceStore[inv.id] = inv; });
+      tbody.innerHTML = invoices.map(inv => {
+        total += inv.amount;
+        return `<tr>
+          <td class="text-muted">${inv.id}</td>
+          <td>${inv.invoice_no}</td>
+          <td>${inv.invoice_date}</td>
+          <td>${inv.description || ''}</td>
+          <td class="fw-semibold">$${inv.amount.toFixed(2)}</td>
+          <td class="text-muted">${inv.comments || ''}</td>
+          <td class="text-nowrap">
+            <button class="btn btn-sm btn-outline-secondary me-1"
+                onclick="editInvoiceById(${inv.id})">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger"
+                onclick="confirmDeleteInvoice(${inv.id})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>`;
+      }).join('');
+      document.getElementById('invoicesGrandTotal').textContent = `$${total.toFixed(2)}`;
+    })
+    .catch(() => {
+      document.getElementById('invoicesTableBody').innerHTML =
+        '<tr><td colspan="7" class="text-center text-danger">Failed to load invoices.</td></tr>';
     });
+}
 
-    // Add Detail
-    document.getElementById('addDetailForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        fetch(`/shipments/${shipmentId}/details/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                description: document.getElementById('detailDescription').value,
-                sku:         document.getElementById('detailSKU').value,
-                quantity:    parseInt(document.getElementById('detailQuantity').value),
-                unit_price:  parseFloat(document.getElementById('detailUnitPrice').value),
-                comments:    document.getElementById('detailComments').value
-            })
-        })
-        .then(r => { if (!r.ok) throw r; return r.json(); })
-        .then(() => { showMsg('addDetailMsg', 'Detail added!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('addDetailMsg', 'Error saving detail.', 'danger'));
+document.getElementById('addInvoiceModal').addEventListener('show.bs.modal', function () {
+  this.querySelector('form').reset();
+  document.getElementById('invoiceDate').value = new Date().toISOString().slice(0, 10);
+});
+
+document.getElementById('addInvoiceForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  fetch(`/shipments/${shipmentId}/invoices/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      invoice_no:   document.getElementById('invoiceNo').value,
+      invoice_date: document.getElementById('invoiceDate').value,
+      description:  document.getElementById('invoiceDescription').value,
+      amount:       parseFloat(document.getElementById('invoiceAmount').value),
+      comments:     document.getElementById('invoiceComments').value
+    })
+  })
+  .then(r => { if (!r.ok) throw r; return r.json(); })
+  .then(() => {
+    showMsg('addInvoiceMsg', 'Invoice added!', 'success');
+    setTimeout(() => { bootstrap.Modal.getInstance(document.getElementById('addInvoiceModal')).hide(); loadInvoices(); }, 700);
+  })
+  .catch(() => showMsg('addInvoiceMsg', 'Error saving invoice.', 'danger'));
+});
+
+document.getElementById('editInvoiceForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  fetch(`/shipments/${shipmentId}/invoices/update`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      invoice_id:   document.getElementById('editInvoiceId').value,
+      invoice_no:   document.getElementById('editInvoiceNo').value,
+      invoice_date: document.getElementById('editInvoiceDate').value,
+      description:  document.getElementById('editInvoiceDescription').value,
+      amount:       parseFloat(document.getElementById('editInvoiceAmount').value),
+      comments:     document.getElementById('editInvoiceComments').value
+    })
+  })
+  .then(r => { if (!r.ok) throw r; return r.json(); })
+  .then(() => {
+    showMsg('editInvoiceMsg', 'Invoice updated!', 'success');
+    setTimeout(() => { bootstrap.Modal.getInstance(document.getElementById('editInvoiceModal')).hide(); loadInvoices(); }, 700);
+  })
+  .catch(() => showMsg('editInvoiceMsg', 'Error updating invoice.', 'danger'));
+});
+
+function editInvoiceById(id) {
+  const inv = invoiceStore[id];
+  openEditInvoiceModal(inv.id, inv.invoice_no, inv.invoice_date, inv.description || '', inv.amount, inv.comments || '');
+}
+
+function openEditInvoiceModal(id, invoiceNo, invoiceDate, description, amount, comments) {
+  document.getElementById('editInvoiceId').value          = id;
+  document.getElementById('editInvoiceNo').value          = invoiceNo;
+  document.getElementById('editInvoiceDate').value        = invoiceDate;
+  document.getElementById('editInvoiceDescription').value = description;
+  document.getElementById('editInvoiceAmount').value      = amount;
+  document.getElementById('editInvoiceComments').value    = comments;
+  new bootstrap.Modal(document.getElementById('editInvoiceModal')).show();
+}
+
+function confirmDeleteInvoice(invoiceId) {
+  if (!confirm('Delete this invoice?')) return;
+  fetch(`/shipments/${shipmentId}/invoices/${invoiceId}/delete`, { method: 'POST' })
+    .then(r => { if (!r.ok) throw r; return r.json(); })
+    .then(() => loadInvoices())
+    .catch(() => alert('Error deleting invoice.'));
+}
+
+// ── Edit Shipment Header ──────────────────────────────────────────────────────
+
+document.getElementById('editHeaderForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  fetch(`/shipments/${shipmentId}/edit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      supplier_name: document.getElementById('editHdrSupplier').value,
+      shipment_no:   document.getElementById('editHdrShipmentNo').value,
+      date_received: document.getElementById('editHdrDate').value,
+      comments:      document.getElementById('editHdrComments').value
+    })
+  })
+  .then(r => { if (!r.ok) throw r; return r.json(); })
+  .then(data => {
+    showMsg('editHeaderMsg', 'Header updated!', 'success');
+    document.getElementById('hdrSupplier').textContent   = data.data.supplier_name;
+    document.getElementById('hdrShipmentNo').textContent = data.data.shipment_no;
+    document.getElementById('hdrDate').textContent       = data.data.date_received;
+    document.getElementById('hdrComments').textContent   = data.data.comments || '—';
+    setTimeout(() => bootstrap.Modal.getInstance(document.getElementById('editHeaderModal')).hide(), 700);
+  })
+  .catch(() => showMsg('editHeaderMsg', 'Error updating header.', 'danger'));
+});
+
+// ── Delete Shipment ───────────────────────────────────────────────────────────
+
+function confirmDeleteShipment() {
+  if (!confirm('Delete this entire shipment and all its products, invoices, and payments? This cannot be undone.')) return;
+  fetch(`/shipments/${shipmentId}/delete`, { method: 'POST' })
+    .then(r => { if (!r.ok) throw r; return r.json(); })
+    .then(() => { window.location.href = '/shipments'; })
+    .catch(() => alert('Error deleting shipment.'));
+}
+
+// ── Products ──────────────────────────────────────────────────────────────────
+
+document.getElementById('addDetailForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  fetch(`/shipments/${shipmentId}/products/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      description: document.getElementById('detailDescription').value,
+      sku:         document.getElementById('detailSKU').value,
+      quantity:    parseInt(document.getElementById('detailQuantity').value),
+      unit_price:  parseFloat(document.getElementById('detailUnitPrice').value),
+      comments:    document.getElementById('detailComments').value
+    })
+  })
+  .then(r => { if (!r.ok) throw r; return r.json(); })
+  .then(() => { showMsg('addDetailMsg', 'Product added!', 'success'); setTimeout(() => location.reload(), 700); })
+  .catch(() => showMsg('addDetailMsg', 'Error saving product.', 'danger'));
+});
+
+document.getElementById('editDetailForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  fetch(`/shipments/${shipmentId}/products/update`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      product_id:  document.getElementById('editDetailId').value,
+      description: document.getElementById('editDetailDescription').value,
+      sku:         document.getElementById('editDetailSKU').value,
+      quantity:    parseInt(document.getElementById('editDetailQuantity').value),
+      unit_price:  parseFloat(document.getElementById('editDetailUnitPrice').value),
+      comments:    document.getElementById('editDetailComments').value
+    })
+  })
+  .then(r => { if (!r.ok) throw r; return r.json(); })
+  .then(() => { showMsg('editDetailMsg', 'Product updated!', 'success'); setTimeout(() => location.reload(), 700); })
+  .catch(() => showMsg('editDetailMsg', 'Error updating product.', 'danger'));
+});
+
+function openEditDetailModal(id, description, sku, quantity, unitPrice, comments) {
+  document.getElementById('editDetailId').value          = id;
+  document.getElementById('editDetailDescription').value = description || '';
+  document.getElementById('editDetailSKU').value         = sku || '';
+  document.getElementById('editDetailQuantity').value    = quantity;
+  document.getElementById('editDetailUnitPrice').value   = unitPrice;
+  document.getElementById('editDetailComments').value    = comments || '';
+  new bootstrap.Modal(document.getElementById('editProductModal')).show();
+}
+
+function confirmDeleteDetail(productId) {
+  if (!confirm('Delete this product?')) return;
+  fetch(`/shipments/${shipmentId}/products/${productId}/delete`, { method: 'POST' })
+    .then(r => { if (!r.ok) throw r; return r.json(); })
+    .then(() => location.reload())
+    .catch(() => alert('Error deleting product.'));
+}
+
+// ── Payments ──────────────────────────────────────────────────────────────────
+
+document.getElementById('addPaymentModal').addEventListener('show.bs.modal', function () {
+  this.querySelector('form').reset();
+  document.getElementById('paymentDate').value = new Date().toISOString().slice(0, 10);
+});
+
+document.getElementById('addPaymentForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  fetch(`/shipments/${shipmentId}/payments/add`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      payment_date: document.getElementById('paymentDate').value,
+      description:  document.getElementById('paymentDescription').value,
+      amount:       parseFloat(document.getElementById('paymentAmount').value),
+      fee:          parseFloat(document.getElementById('paymentFee').value) || 0,
+      comments:     document.getElementById('paymentComments').value
+    })
+  })
+  .then(r => { if (!r.ok) throw r; return r.json(); })
+  .then(() => { showMsg('addPaymentMsg', 'Payment added!', 'success'); setTimeout(() => location.reload(), 700); })
+  .catch(() => showMsg('addPaymentMsg', 'Error saving payment.', 'danger'));
+});
+
+document.getElementById('editPaymentForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  fetch(`/shipments/${shipmentId}/payments/update`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      payment_id:   document.getElementById('editPaymentId').value,
+      payment_date: document.getElementById('editPaymentDate').value,
+      description:  document.getElementById('editPaymentDescription').value,
+      amount:       parseFloat(document.getElementById('editPaymentAmount').value),
+      fee:          parseFloat(document.getElementById('editPaymentFee').value) || 0,
+      comments:     document.getElementById('editPaymentComments').value
+    })
+  })
+  .then(r => { if (!r.ok) throw r; return r.json(); })
+  .then(() => { showMsg('editPaymentMsg', 'Payment updated!', 'success'); setTimeout(() => location.reload(), 700); })
+  .catch(() => showMsg('editPaymentMsg', 'Error updating payment.', 'danger'));
+});
+
+function openEditPaymentModal(id, paymentDate, description, amount, fee, comments) {
+  document.getElementById('editPaymentId').value          = id;
+  document.getElementById('editPaymentDate').value        = paymentDate;
+  document.getElementById('editPaymentDescription').value = description || '';
+  document.getElementById('editPaymentAmount').value      = amount;
+  document.getElementById('editPaymentFee').value         = fee;
+  document.getElementById('editPaymentComments').value    = comments || '';
+  new bootstrap.Modal(document.getElementById('editPaymentModal')).show();
+}
+
+function confirmDeletePayment(paymentId) {
+  if (!confirm('Delete this payment?')) return;
+  fetch(`/shipments/${shipmentId}/payments/${paymentId}/delete`, { method: 'POST' })
+    .then(r => { if (!r.ok) throw r; return r.json(); })
+    .then(() => location.reload())
+    .catch(() => alert('Error deleting payment.'));
+}
+
+// ── CSV Upload ────────────────────────────────────────────────────────────────
+
+document.getElementById('csvFileInput').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+  const resultEl = document.getElementById('csvUploadResult');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = '<div class="alert alert-info py-1 mb-2">Uploading…</div>';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  this.value = '';
+
+  fetch(`/shipments/${shipmentId}/products/upload`, { method: 'POST', body: formData })
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok || data.error) {
+        resultEl.innerHTML = `<div class="alert alert-danger py-1 mb-2">Error: ${data.error || 'Upload failed'}</div>`;
+        return;
+      }
+      let msg = `<strong>${data.added}</strong> product(s) imported.`;
+      if (data.errors && data.errors.length) {
+        msg += ` Skipped: ${data.errors.join('; ')}`;
+      }
+      resultEl.innerHTML = `<div class="alert alert-success py-1 mb-2">${msg}</div>`;
+      if (data.added > 0) setTimeout(() => location.reload(), 1200);
+    })
+    .catch(() => {
+      resultEl.innerHTML = '<div class="alert alert-danger py-1 mb-2">Upload failed.</div>';
     });
+});
 
-    // Edit Detail
-    document.getElementById('editDetailForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        fetch(`/shipments/${shipmentId}/details/update`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                detail_id:   document.getElementById('editDetailId').value,
-                description: document.getElementById('editDetailDescription').value,
-                sku:         document.getElementById('editDetailSKU').value,
-                quantity:    parseInt(document.getElementById('editDetailQuantity').value),
-                unit_price:  parseFloat(document.getElementById('editDetailUnitPrice').value),
-                comments:    document.getElementById('editDetailComments').value
-            })
-        })
-        .then(r => { if (!r.ok) throw r; return r.json(); })
-        .then(() => { showMsg('editDetailMsg', 'Detail updated!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('editDetailMsg', 'Error updating detail.', 'danger'));
-    });
-
-    // Add Payment
-    document.getElementById('addPaymentForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        fetch(`/shipments/${shipmentId}/payments/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                payment_date: document.getElementById('paymentDate').value,
-                description:  document.getElementById('paymentDescription').value,
-                amount:       parseFloat(document.getElementById('paymentAmount').value),
-                fee:          parseFloat(document.getElementById('paymentFee').value) || 0,
-                comments:     document.getElementById('paymentComments').value
-            })
-        })
-        .then(r => { if (!r.ok) throw r; return r.json(); })
-        .then(() => { showMsg('addPaymentMsg', 'Payment added!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('addPaymentMsg', 'Error saving payment.', 'danger'));
-    });
-
-    // Edit Payment
-    document.getElementById('editPaymentForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        fetch(`/shipments/${shipmentId}/payments/update`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                payment_id:   document.getElementById('editPaymentId').value,
-                payment_date: document.getElementById('editPaymentDate').value,
-                description:  document.getElementById('editPaymentDescription').value,
-                amount:       parseFloat(document.getElementById('editPaymentAmount').value),
-                fee:          parseFloat(document.getElementById('editPaymentFee').value) || 0,
-                comments:     document.getElementById('editPaymentComments').value
-            })
-        })
-        .then(r => { if (!r.ok) throw r; return r.json(); })
-        .then(() => { showMsg('editPaymentMsg', 'Payment updated!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('editPaymentMsg', 'Error updating payment.', 'danger'));
-    });
-
-    function openEditDetailModal(id, description, sku, quantity, unitPrice, comments) {
-        document.getElementById('editDetailId').value = id;
-        document.getElementById('editDetailDescription').value = description || '';
-        document.getElementById('editDetailSKU').value = sku || '';
-        document.getElementById('editDetailQuantity').value = quantity;
-        document.getElementById('editDetailUnitPrice').value = unitPrice;
-        document.getElementById('editDetailComments').value = comments || '';
-        new bootstrap.Modal(document.getElementById('editShipmentDetailModal')).show();
-    }
-
-    function openEditPaymentModal(id, paymentDate, description, amount, fee, comments) {
-        document.getElementById('editPaymentId').value = id;
-        document.getElementById('editPaymentDate').value = paymentDate;
-        document.getElementById('editPaymentDescription').value = description || '';
-        document.getElementById('editPaymentAmount').value = amount;
-        document.getElementById('editPaymentFee').value = fee;
-        document.getElementById('editPaymentComments').value = comments || '';
-        new bootstrap.Modal(document.getElementById('editPaymentModal')).show();
-    }
+loadInvoices();
 </script>
 {% endblock %}
