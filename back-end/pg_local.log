@@ -213,3 +213,29 @@
 2026-06-30 11:27:28.610 CDT [39992] LOG:  checkpoint starting: end-of-recovery immediate wait
 2026-06-30 11:27:28.622 CDT [39992] LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.002 s, total=0.014 s; sync files=2, longest=0.002 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/1D0A8B0, redo lsn=0/1D0A8B0
 2026-06-30 11:27:28.630 CDT [35620] LOG:  database system is ready to accept connections
+2026-06-30 11:32:28.628 CDT [39992] LOG:  checkpoint starting: time
+2026-06-30 11:32:35.274 CDT [39992] LOG:  checkpoint complete: wrote 60 buffers (0.4%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=6.602 s, sync=0.033 s, total=6.646 s; sync files=49, longest=0.011 s, average=0.001 s; distance=278 kB, estimate=278 kB; lsn=0/1D50250, redo lsn=0/1D501F8
+2026-06-30 11:37:10.524 CDT [3916] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-30 11:37:28.293 CDT [39992] LOG:  checkpoint starting: time
+2026-06-30 11:37:29.646 CDT [39992] LOG:  checkpoint complete: wrote 12 buffers (0.1%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=1.331 s, sync=0.012 s, total=1.354 s; sync files=12, longest=0.003 s, average=0.001 s; distance=3 kB, estimate=250 kB; lsn=0/1D51218, redo lsn=0/1D511C0
+2026-06-30 11:38:30.005 CDT [1764] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-30 11:38:32.039 CDT [34048] ERROR:  column vendor_invoices.description does not exist at character 244
+2026-06-30 11:38:32.039 CDT [34048] STATEMENT:  SELECT vendor_invoices.id AS vendor_invoices_id, vendor_invoices.shipment_header_id AS vendor_invoices_shipment_header_id, vendor_invoices.invoice_no AS vendor_invoices_invoice_no, vendor_invoices.invoice_date AS vendor_invoices_invoice_date, vendor_invoices.description AS vendor_invoices_description, vendor_invoices.amount AS vendor_invoices_amount, vendor_invoices.comments AS vendor_invoices_comments 
+	FROM vendor_invoices 
+	WHERE vendor_invoices.shipment_header_id = 1 ORDER BY vendor_invoices.invoice_date ASC
+2026-06-30 11:38:36.092 CDT [34048] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-30 11:42:28.652 CDT [39992] LOG:  checkpoint starting: time
+2026-06-30 11:42:30.307 CDT [39992] LOG:  checkpoint complete: wrote 15 buffers (0.1%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=1.636 s, sync=0.010 s, total=1.656 s; sync files=16, longest=0.002 s, average=0.001 s; distance=22 kB, estimate=228 kB; lsn=0/1D56A88, redo lsn=0/1D56A30
+2026-06-30 11:47:28.313 CDT [39992] LOG:  checkpoint starting: time
+2026-06-30 11:47:28.776 CDT [39992] LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.438 s, sync=0.005 s, total=0.463 s; sync files=5, longest=0.002 s, average=0.001 s; distance=1 kB, estimate=205 kB; lsn=0/1D57058, redo lsn=0/1D57000
+2026-06-30 11:51:44.025 CDT [39384] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-06-30 11:52:28.780 CDT [39992] LOG:  checkpoint starting: time
+2026-06-30 11:52:29.247 CDT [39992] LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.446 s, sync=0.006 s, total=0.467 s; sync files=5, longest=0.002 s, average=0.002 s; distance=3 kB, estimate=185 kB; lsn=0/1D57CF0, redo lsn=0/1D57C98
+2026-06-30 11:57:28.247 CDT [39992] LOG:  checkpoint starting: time
+2026-06-30 11:57:28.709 CDT [39992] LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.441 s, sync=0.006 s, total=0.462 s; sync files=5, longest=0.002 s, average=0.002 s; distance=2 kB, estimate=166 kB; lsn=0/1D58780, redo lsn=0/1D58728
+2026-06-30 12:02:28.715 CDT [39992] LOG:  checkpoint starting: time
+2026-06-30 12:02:29.177 CDT [39992] LOG:  checkpoint complete: wrote 4 buffers (0.0%), wrote 1 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.442 s, sync=0.006 s, total=0.463 s; sync files=5, longest=0.002 s, average=0.002 s; distance=2 kB, estimate=150 kB; lsn=0/1D592F8, redo lsn=0/1D592A0
