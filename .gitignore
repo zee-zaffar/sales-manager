@@ -35,7 +35,9 @@ utils/receipts.txt
 
 # PostgreSQL local development database
 back-end/pgdata-local/
-back-end/pg_local.log
+
+# Log files (pg, Flask dev server, etc.)
+**/*.log
 
 # IDE / OS
 .vscode/
