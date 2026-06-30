@@ -202,3 +202,14 @@
 2026-06-29 14:45:41.870 CDT [6856] LOG:  checkpoint complete: wrote 12 buffers (0.1%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=1.316 s, sync=0.006 s, total=1.332 s; sync files=8, longest=0.001 s, average=0.001 s; distance=59 kB, estimate=4178 kB; lsn=0/1D08190, redo lsn=0/1D08138
 2026-06-29 14:50:40.884 CDT [6856] LOG:  checkpoint starting: time
 2026-06-29 14:50:41.234 CDT [6856] LOG:  checkpoint complete: wrote 3 buffers (0.0%), wrote 0 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.330 s, sync=0.003 s, total=0.351 s; sync files=3, longest=0.002 s, average=0.001 s; distance=9 kB, estimate=3761 kB; lsn=0/1D0A800, redo lsn=0/1D0A7A8
+2026-06-30 11:27:27.238 CDT [35620] LOG:  starting PostgreSQL 18.3 on x86_64-windows, compiled by msvc-19.44.35225, 64-bit
+2026-06-30 11:27:27.245 CDT [35620] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+2026-06-30 11:27:27.245 CDT [35620] LOG:  listening on IPv6 address "::1", port 5433
+2026-06-30 11:27:28.080 CDT [39332] LOG:  database system was interrupted; last known up at 2026-06-29 14:50:41 CDT
+2026-06-30 11:27:28.600 CDT [39332] LOG:  database system was not properly shut down; automatic recovery in progress
+2026-06-30 11:27:28.607 CDT [39332] LOG:  redo starts at 0/1D0A7A8
+2026-06-30 11:27:28.607 CDT [39332] LOG:  invalid record length at 0/1D0A8B0: expected at least 24, got 0
+2026-06-30 11:27:28.607 CDT [39332] LOG:  redo done at 0/1D0A878 system usage: CPU: user: 0.00 s, system: 0.00 s, elapsed: 0.00 s
+2026-06-30 11:27:28.610 CDT [39992] LOG:  checkpoint starting: end-of-recovery immediate wait
+2026-06-30 11:27:28.622 CDT [39992] LOG:  checkpoint complete: wrote 0 buffers (0.0%), wrote 3 SLRU buffers; 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.002 s, total=0.014 s; sync files=2, longest=0.002 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/1D0A8B0, redo lsn=0/1D0A8B0
+2026-06-30 11:27:28.630 CDT [35620] LOG:  database system is ready to accept connections

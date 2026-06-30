@@ -19,11 +19,12 @@ class ShipmentHeader(db.Model):
     shipment_no = db.Column(db.String(100), nullable=False)
     date_received = db.Column(db.Date, nullable=False)
     comments = db.Column(db.Text)
-    details = db.relationship('ShipmentDetail', backref='header', cascade="all, delete-orphan")
+    products = db.relationship('ShipmentProduct', backref='header', cascade="all, delete-orphan")
     payments = db.relationship('Payment', backref='header', cascade="all, delete-orphan")
+    invoices = db.relationship('VendorInvoice', backref='header', cascade="all, delete-orphan")
 
-class ShipmentDetail(db.Model):
-    __tablename__ = 'shipment_detail'
+class ShipmentProduct(db.Model):
+    __tablename__ = 'shipment_products'
     id = db.Column(db.Integer, primary_key=True)
     shipment_header_id = db.Column(db.Integer, db.ForeignKey('shipment_header.id'), nullable=False)
     description = db.Column(db.Text)
@@ -49,6 +50,16 @@ class Products(db.Model):
     description = db.Column(db.String, nullable=False)
     color = db.Column(db.String(100), nullable=False)
     cost = db.Column(db.Numeric(18,2), nullable=False)
+    comments = db.Column(db.Text)
+
+class VendorInvoice(db.Model):
+    __tablename__ = 'vendor_invoices'
+    id = db.Column(db.Integer, primary_key=True)
+    shipment_header_id = db.Column(db.Integer, db.ForeignKey('shipment_header.id'), nullable=False)
+    invoice_no = db.Column(db.String(100), nullable=False)
+    invoice_date = db.Column(db.Date, nullable=False)
+    description = db.Column(db.String(255))
+    amount = db.Column(db.Numeric(18,2), nullable=False)
     comments = db.Column(db.Text)
 
 class Supplier(db.Model):

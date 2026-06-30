@@ -1,54 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %} {% endblock %}</title>
-        <!-- Bootstrap CSS -->
-         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    </head>
-    <body class="d-flex flex-column min-vh-100">
-        <div class="flex-grow-1">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="/">Sales Manager</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/products">Products</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/orders">Orders</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/suppliers">Suppliers</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/shipments">Shipments</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sales Manager{% endblock %} — Sales Manager</title>
 
-      {% block content %} {% endblock %}
-  </div>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-        <footer>
-                <footer class="footer mt-auto py-3 bg-light border-top">
-                    <div class="container text-center">
-                        <span class="text-muted">&copy; {{ current_year if current_year else 2025 }} Sales Manager. All rights reserved.</span>
-                    </div>
-                </footer>
-        </footer>
-    
-        <!-- Bootstrap JS Bundle -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Custom styles -->
+    <link href="/static/style.css" rel="stylesheet">
+  </head>
+  <body class="d-flex flex-column min-vh-100">
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <span class="brand-accent">&#9632;</span> Sales Manager
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav"
+                aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-3 gap-1">
+            <li class="nav-item">
+              <a class="nav-link" href="/"><i class="bi bi-house me-1"></i>Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/suppliers"><i class="bi bi-building me-1"></i>Suppliers</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/shipments"><i class="bi bi-truck me-1"></i>Shipments</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="flex-grow-1 py-4">
+      <div class="container">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      &copy; {{ current_year if current_year else 2025 }} Sales Manager. All rights reserved.
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
 </html>

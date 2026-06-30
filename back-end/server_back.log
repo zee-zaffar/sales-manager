@@ -1,0 +1,302 @@
+ * Serving Flask app 'main'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+127.0.0.1 - - [30/Jun/2026 11:28:16] "GET /shipments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:28:48] "GET /shipments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:29:10] "GET /shipments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:29:19] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:29:19] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:29:19] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:29:19] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:33:07] "POST /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:36:21] "POST /shipments/1/invoices HTTP/1.1" 201 -
+127.0.0.1 - - [30/Jun/2026 11:36:22] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:37:06] "POST /shipments/1/payments HTTP/1.1" 500 -
+Traceback (most recent call last):
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\danfay\sales-manager\back-end\routes.py", line 101, in add_payment
+    return jsonify({'id': payment_id}), 201
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\json\__init__.py", line 170, in jsonify
+    return current_app.json.response(*args, **kwargs)  # type: ignore[return-value]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\json\provider.py", line 214, in response
+    f"{self.dumps(obj, **dump_args)}\n", mimetype=self.mimetype
+       ~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\json\provider.py", line 179, in dumps
+    return json.dumps(obj, **kwargs)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\zee.zaffar\AppData\Local\Python\pythoncore-3.14-64\Lib\json\__init__.py", line 242, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Users\zee.zaffar\AppData\Local\Python\pythoncore-3.14-64\Lib\json\encoder.py", line 202, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Users\zee.zaffar\AppData\Local\Python\pythoncore-3.14-64\Lib\json\encoder.py", line 263, in iterencode
+    return _iterencode(o, 0)
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\json\provider.py", line 121, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type Response is not JSON serializable
+when serializing dict item 'id'
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\shipments.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\shipments.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\routes.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+127.0.0.1 - - [30/Jun/2026 11:37:56] "POST /shipments/1/products HTTP/1.1" 201 -
+127.0.0.1 - - [30/Jun/2026 11:38:14] "POST /shipments/1/products HTTP/1.1" 201 -
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\db_models.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+127.0.0.1 - - [30/Jun/2026 11:38:31] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:38:31] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:38:31] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:38:32] "GET /shipments/1/invoices HTTP/1.1" 500 -
+Traceback (most recent call last):
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+    ^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.errors.UndefinedColumn: column vendor_invoices.description does not exist
+LINE 1: ...ces.invoice_date AS vendor_invoices_invoice_date, vendor_inv...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 1536, in __call__
+    return self.wsgi_app(environ, start_response)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 1514, in wsgi_app
+    response = self.handle_exception(e)
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\danfay\sales-manager\back-end\routes.py", line 155, in get_invoices
+    return get_invoices_by_shipment(shipment_header_id)
+  File "C:\danfay\sales-manager\back-end\shipments.py", line 196, in get_invoices_by_shipment
+    ).order_by(VendorInvoice.invoice_date.asc()).all()
+                                                 ~~~^^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2711, in all
+    return self._iter().all()  # type: ignore
+           ~~~~~~~~~~^^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+    
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2373, in execute
+    return self._execute_internal(
+    
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2271, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+    
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+    
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+    
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+    
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+    
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+    
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+    ^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+    ^
+  File "C:\danfay\sales-manager\back-end\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column vendor_invoices.description does not exist
+LINE 1: ...ces.invoice_date AS vendor_invoices_invoice_date, vendor_inv...
+                                                             ^
+
+[SQL: SELECT vendor_invoices.id AS vendor_invoices_id, vendor_invoices.shipment_header_id AS vendor_invoices_shipment_header_id, vendor_invoices.invoice_no AS vendor_invoices_invoice_no, vendor_invoices.invoice_date AS vendor_invoices_invoice_date, vendor_invoices.description AS vendor_invoices_description, vendor_invoices.amount AS vendor_invoices_amount, vendor_invoices.comments AS vendor_invoices_comments 
+FROM vendor_invoices 
+WHERE vendor_invoices.shipment_header_id = %(shipment_header_id_1)s ORDER BY vendor_invoices.invoice_date ASC]
+[parameters: {'shipment_header_id_1': 1}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\shipments.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\shipments.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\shipments.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+127.0.0.1 - - [30/Jun/2026 11:39:15] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:39:15] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:39:15] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:39:16] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:40:31] "POST /shipments/1/payments HTTP/1.1" 201 -
+127.0.0.1 - - [30/Jun/2026 11:41:07] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:41:07] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:41:07] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:41:07] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:42:14] "POST /shipments/1/invoices HTTP/1.1" 201 -
+127.0.0.1 - - [30/Jun/2026 11:42:15] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:43:09] "POST /shipments/1/payments HTTP/1.1" 201 -
+127.0.0.1 - - [30/Jun/2026 11:43:10] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:43:10] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:43:10] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:43:10] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:47:34] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:47:34] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:47:34] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:47:34] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:48:27] "PUT /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:48:36] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:48:36] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:48:36] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:02] "PUT /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:08] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:08] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:08] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:08] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:17] "PUT /shipments/1/products/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:17] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:17] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:17] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:18] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:37] "PUT /shipments/1/invoices/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:38] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:53] "PUT /shipments/1/invoices/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:49:54] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:50:09] "PUT /shipments/1/payments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:50:10] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:50:10] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:50:10] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:50:10] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:51:34] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:51:34] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:51:34] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:51:34] "GET /shipments/1/invoices HTTP/1.1" 200 -
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\shipments.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\routes.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\routes.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+ * Detected change in 'C:\\danfay\\sales-manager\\back-end\\routes.py', reloading
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 100-089-649
+127.0.0.1 - - [30/Jun/2026 11:52:40] "GET /shipments/products/template HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:52:49] "POST /shipments/1/products/upload HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:53:48] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:53:48] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:53:48] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:53:48] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:53:53] "GET /shipments/products/template HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:57:48] "POST /shipments/1/products/upload HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:57:49] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:57:49] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:57:49] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:57:49] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:59:41] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:59:41] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:59:41] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:59:41] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:59:44] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:59:44] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:59:44] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 11:59:44] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:01:51] "GET /shipments/1 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:01:51] "GET /shipments/1/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:01:51] "GET /shipments/1/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:01:51] "GET /shipments/1/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:02] "GET /products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:08] "GET /orders HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:11] "GET /suppliers HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:13] "GET /products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:20] "GET /suppliers HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:23] "GET /orders HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:34] "GET /shipments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:38] "GET /suppliers HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:40] "GET /orders HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:46] "GET /products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:02:48] "GET /shipments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:03:02] "GET /shipments/2 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:03:02] "GET /shipments/2/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:03:02] "GET /shipments/2/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:03:02] "GET /shipments/2/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:11] "GET /shipments/2 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:11] "GET /shipments/2/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:11] "GET /shipments/2/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:12] "GET /shipments/2/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:22] "GET /shipments/2 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:22] "GET /shipments/2/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:22] "GET /shipments/2/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:22] "GET /shipments/2/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:34] "GET /shipments/2 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:34] "GET /shipments/2/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:34] "GET /shipments/2/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:04:34] "GET /shipments/2/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:24] "GET /shipments/2 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:24] "GET /shipments/2/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:24] "GET /shipments/2/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:24] "GET /shipments/2/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:26] "GET /shipments/2 HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:26] "GET /shipments/2/products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:26] "GET /shipments/2/payments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:27] "GET /shipments/2/invoices HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:38] "GET /products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:40] "GET /orders HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:42] "GET /suppliers HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:44] "GET /orders HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:05:44] "GET /products HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:07:51] "GET /orders HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:07:54] "GET /shipments HTTP/1.1" 200 -
+127.0.0.1 - - [30/Jun/2026 12:07:57] "GET /suppliers HTTP/1.1" 200 -

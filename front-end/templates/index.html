@@ -1,10 +1,53 @@
 {% extends 'base.html' %}
 
-{% block title %} Home {% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-<div>
-    THis is Home page
+
+<!-- Hero image banner -->
+<div class="hero-banner mb-4">
+  <img
+    src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=1400&h=480&fit=crop&q=85"
+    alt="Marble chess set"
+    class="hero-img"
+    onerror="this.style.display='none'; this.parentElement.classList.add('hero-fallback')"
+  >
+  <div class="hero-overlay">
+    <div class="hero-tag">Marble Chess &amp; Gifts</div>
+    <h2 class="hero-title">Sales Manager</h2>
+    <p class="hero-sub">Track shipments, invoices, payments &amp; suppliers for your Etsy store.</p>
+  </div>
+</div>
+
+<!-- Nav cards -->
+<div class="row g-3">
+  <div class="col-sm-6 col-lg-4">
+    <a href="/shipments" class="nav-card">
+      <div class="nav-card-icon" style="background:#fefce8;">
+        <i class="bi bi-truck" style="color:#ca8a04;"></i>
+      </div>
+      <div class="nav-card-title">Shipments</div>
+      <div class="nav-card-desc">Products, invoices &amp; payments per delivery</div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-lg-4">
+    <a href="/suppliers" class="nav-card">
+      <div class="nav-card-icon" style="background:#fdf4ff;">
+        <i class="bi bi-building" style="color:#a855f7;"></i>
+      </div>
+      <div class="nav-card-title">Suppliers</div>
+      <div class="nav-card-desc">Manage your vendor directory</div>
+    </a>
+  </div>
+  <div class="col-sm-6 col-lg-4">
+    <a href="/shipment/new" class="nav-card">
+      <div class="nav-card-icon" style="background:#f0fdf4;">
+        <i class="bi bi-plus-circle" style="color:#16a34a;"></i>
+      </div>
+      <div class="nav-card-title">New Shipment</div>
+      <div class="nav-card-desc">Record a new incoming shipment</div>
+    </a>
+  </div>
 </div>
 
 {% endblock %}
