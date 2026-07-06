@@ -11,8 +11,11 @@
 
     <!-- Shipment Header -->
     <div class="card mb-4">
-        <div class="card-header bg-light">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Shipment Header</h5>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editShipmentHeaderModal">
+                Edit
+            </button>
         </div>
         <ul class="list-group list-group-flush">
             <li class="list-group-item"><strong>Supplier Name:</strong> {{ shipment.supplier_name }}</li>
@@ -26,19 +29,28 @@
     <div class="card mb-4">
         <div class="card-header bg-light d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Shipment Details</h5>
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addShipmentDetailModal">
-                Add Detail
-            </button>
+            <div>
+                <a href="/shipments/detail-template.csv" class="btn btn-outline-secondary">
+                    Download Template
+                </a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#bulkUploadDetailModal">
+                    Bulk Upload CSV
+                </button>
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addShipmentDetailModal">
+                    Add Detail
+                </button>
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-striped table-bordered align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
-                        <th>Description</th>
                         <th>SKU</th>
+                        <th>Description</th>
                         <th>Qty</th>
                         <th>Unit Price</th>
+                        <th>Landed Cost</th>
                         <th>Total</th>
                         <th>Comments</th>
                         <th></th>
@@ -46,30 +58,99 @@
                 </thead>
                 <tbody>
                     {% for detail in details %}
-                    {% set row_total = detail.quantity * detail.unit_price %}
+                    {% set unit_cost = detail.landed_cost if detail.landed_cost is not none else detail.unit_price %}
+                    {% set row_total = detail.quantity * unit_cost %}
                     <tr>
                         <td>{{ detail.id }}</td>
+                        <td>{% if detail.sku %}{{ detail.sku }}{% else %}<span class="badge bg-warning text-dark">No SKU</span>{% endif %}</td>
                         <td>{{ detail.description }}</td>
-                        <td>{{ detail.sku }}</td>
                         <td>{{ detail.quantity }}</td>
                         <td>${{ '%.2f' % detail.unit_price }}</td>
+                        <td>{% if detail.landed_cost is not none %}${{ '%.2f' % detail.landed_cost }}{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
                         <td>${{ '%.2f' % row_total }}</td>
                         <td>{{ detail.comments }}</td>
                         <td>
                             <button type="button" class="btn btn-sm btn-outline-secondary"
-                                onclick="openEditDetailModal({{ detail.id }}, {{ detail.description|tojson }}, {{ detail.sku|tojson }}, {{ detail.quantity }}, {{ detail.unit_price }}, {{ detail.comments|tojson }})">
+                                onclick='openEditDetailModal({{ detail.id }}, {{ detail.description|tojson }}, {{ detail.sku|tojson }}, {{ detail.quantity }}, {{ detail.unit_price }}, {{ detail.landed_cost|tojson }}, {{ detail.comments|tojson }})'>
                                 Edit
                             </button>
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="8" class="text-center text-muted">No details yet.</td></tr>
+                    <tr><td colspan="9" class="text-center text-muted">No details yet.</td></tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="6" class="text-end">Grand Total:</th>
+                        <th colspan="7" class="text-end">Grand Total:</th>
                         <th colspan="2">${{ '%.2f' % details_grand_total }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Invoices -->
+    <div class="card mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Invoices</h5>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addInvoiceModal">
+                Add Invoice
+            </button>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Vendor</th>
+                        <th>Invoice No</th>
+                        <th>Invoice Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Comments</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td>{{ invoice.id }}</td>
+                        <td>{{ invoice.vendor_name }}</td>
+                        <td>{{ invoice.invoice_no }}</td>
+                        <td>{{ invoice.invoice_date }}</td>
+                        <td>
+                            {% if invoice.invoice_type == 'product' %}
+                            <span class="badge bg-secondary">Product</span>
+                            {% elif invoice.invoice_type == 'shipping' %}
+                            <span class="badge bg-info text-dark">Shipping</span>
+                            {% elif invoice.invoice_type == 'customs' %}
+                            <span class="badge bg-warning text-dark">Customs</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark border">Other</span>
+                            {% endif %}
+                        </td>
+                        <td>${{ '%.2f' % invoice.amount }}</td>
+                        <td>{{ invoice.comments }}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick='openEditInvoiceModal({{ invoice.id }}, {{ invoice.vendor_name|tojson }}, {{ invoice.invoice_no|tojson }}, {{ invoice.invoice_date|tojson }}, {{ invoice.amount }}, {{ invoice.invoice_type|tojson }}, {{ invoice.comments|tojson }})'>
+                                Edit
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                onclick='deleteInvoice({{ invoice.id }})'>
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center text-muted">No invoices yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="5" class="text-end">Grand Total:</th>
+                        <th colspan="3">${{ '%.2f' % invoices_grand_total }}</th>
                     </tr>
                 </tfoot>
             </table>
@@ -90,6 +171,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Payment Date</th>
+                        <th>Invoice</th>
                         <th>Description</th>
                         <th>Amount</th>
                         <th>Fee</th>
@@ -104,6 +186,7 @@
                     <tr>
                         <td>{{ payment.id }}</td>
                         <td>{{ payment.payment_date }}</td>
+                        <td>{% if payment.invoice_id %}{{ payment.vendor_name }}{% if payment.invoice_no %} ({{ payment.invoice_no }}){% endif %}{% else %}<span class="text-muted">&mdash;</span>{% endif %}</td>
                         <td>{{ payment.description }}</td>
                         <td>${{ '%.2f' % payment.amount }}</td>
                         <td>${{ '%.2f' % payment.fee }}</td>
@@ -111,22 +194,94 @@
                         <td>{{ payment.comments }}</td>
                         <td>
                             <button type="button" class="btn btn-sm btn-outline-secondary"
-                                onclick="openEditPaymentModal('{{ payment.id }}', '{{ payment.payment_date }}', {{ payment.description|tojson }}, '{{ payment.amount }}', '{{ payment.fee }}', {{ payment.comments|tojson }})">
+                                onclick='openEditPaymentModal({{ payment.id }}, {{ payment.invoice_id|tojson }}, {{ payment.payment_date|tojson }}, {{ payment.description|tojson }}, {{ payment.amount }}, {{ payment.fee }}, {{ payment.comments|tojson }})'>
                                 Edit
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                onclick='deletePayment({{ payment.id }})'>
+                                Delete
                             </button>
                         </td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="8" class="text-center text-muted">No payments yet.</td></tr>
+                    <tr><td colspan="9" class="text-center text-muted">No payments yet.</td></tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th colspan="7" class="text-end">Grand Total:</th>
-                        <th>${{ '%.2f' % payments_grand_total }}</th>
+                        <th colspan="6" class="text-end">Grand Total:</th>
+                        <th colspan="2">${{ '%.2f' % payments_grand_total }}</th>
                     </tr>
                 </tfoot>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Shipment Header Modal -->
+<div class="modal fade" id="editShipmentHeaderModal" tabindex="-1" aria-labelledby="editShipmentHeaderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editShipmentHeaderModalLabel">Edit Shipment Header</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editShipmentHeaderForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Supplier Name</label>
+                        <input id="headerSupplierName" type="text" class="form-control" maxlength="255" required value="{{ shipment.supplier_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Shipment No</label>
+                        <input id="headerShipmentNo" type="text" class="form-control" maxlength="100" required value="{{ shipment.shipment_no }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date Received</label>
+                        <input id="headerDateReceived" type="date" class="form-control" required value="{{ shipment.date_received }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comments</label>
+                        <textarea id="headerComments" class="form-control" rows="2">{{ shipment.comments or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="editShipmentHeaderMsg" class="me-auto"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Shipment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Upload Shipment Detail Modal -->
+<div class="modal fade" id="bulkUploadDetailModal" tabindex="-1" aria-labelledby="bulkUploadDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkUploadDetailModalLabel">Bulk Upload Shipment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="bulkUploadDetailForm">
+                <div class="modal-body">
+                    <p class="text-muted small">
+                        CSV columns (in order): <code>SKU, Description, Qty, Unit Price, Landed Cost, Comments</code> (Landed Cost and Comments optional).
+                        <a href="/shipments/detail-template.csv">Download the template</a> to get the exact headers.
+                        Any SKU not found in the Products catalog is left blank — edit that row afterward to assign a product.
+                        Landed cost is taken as entered, not calculated.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label">CSV File</label>
+                        <input id="bulkUploadFile" type="file" accept=".csv" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="bulkUploadMsg" class="me-auto"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Upload</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -142,12 +297,17 @@
             <form id="addDetailForm">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <input id="detailDescription" type="text" class="form-control" maxlength="255" required>
+                        <label class="form-label">SKU</label>
+                        <select id="detailSKU" class="form-select" onchange="autoDescription('add')" required>
+                            <option value="">Select…</option>
+                            {% for product in active_products %}
+                            <option value="{{ product.code }}">{{ product.code }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">SKU</label>
-                        <input id="detailSKU" type="text" class="form-control" maxlength="100" required>
+                        <label class="form-label">Description</label>
+                        <input id="detailDescription" type="text" class="form-control" maxlength="255" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Quantity</label>
@@ -156,6 +316,11 @@
                     <div class="mb-3">
                         <label class="form-label">Unit Price</label>
                         <input id="detailUnitPrice" type="number" step="0.01" min="0" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Landed Cost</label>
+                        <input id="detailLandedCost" type="number" step="0.01" min="0" class="form-control">
+                        <div class="form-text">Entered manually, not calculated. Leave blank to use unit price.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Comments</label>
@@ -184,12 +349,17 @@
                 <div class="modal-body">
                     <input type="hidden" id="editDetailId">
                     <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <input id="editDetailDescription" type="text" class="form-control" maxlength="255" required>
+                        <label class="form-label">SKU</label>
+                        <select id="editDetailSKU" class="form-select" onchange="autoDescription('edit')" required>
+                            <option value="">Select…</option>
+                            {% for product in active_products %}
+                            <option value="{{ product.code }}">{{ product.code }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">SKU</label>
-                        <input id="editDetailSKU" type="text" class="form-control" maxlength="100" required>
+                        <label class="form-label">Description</label>
+                        <input id="editDetailDescription" type="text" class="form-control" maxlength="255" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Quantity</label>
@@ -200,6 +370,11 @@
                         <input id="editDetailUnitPrice" type="number" step="0.01" min="0" class="form-control" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Landed Cost</label>
+                        <input id="editDetailLandedCost" type="number" step="0.01" min="0" class="form-control">
+                        <div class="form-text">Entered manually, not calculated. Leave blank to use unit price.</div>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Comments</label>
                         <textarea id="editDetailComments" class="form-control" rows="2"></textarea>
                     </div>
@@ -208,6 +383,109 @@
                     <div id="editDetailMsg" class="me-auto"></div>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Update Detail</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Invoice Modal -->
+<div class="modal fade" id="addInvoiceModal" tabindex="-1" aria-labelledby="addInvoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addInvoiceModalLabel">Add Invoice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addInvoiceForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Vendor Name</label>
+                        <input id="invoiceVendorName" type="text" class="form-control" maxlength="255" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Invoice No</label>
+                        <input id="invoiceNo" type="text" class="form-control" maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Invoice Date</label>
+                        <input id="invoiceDate" type="date" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input id="invoiceAmount" type="number" step="0.01" min="0" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select id="invoiceType" class="form-select" required>
+                            <option value="product">Product (goods cost)</option>
+                            <option value="shipping">Shipping</option>
+                            <option value="customs">Customs</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <div class="form-text">Shipping/Customs/Other are prorated across this shipment's line items to compute landed cost. Product is already reflected in each line's unit price.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comments</label>
+                        <textarea id="invoiceComments" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="addInvoiceMsg" class="me-auto"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Invoice Modal -->
+<div class="modal fade" id="editInvoiceModal" tabindex="-1" aria-labelledby="editInvoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editInvoiceModalLabel">Edit Invoice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editInvoiceForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editInvoiceId">
+                    <div class="mb-3">
+                        <label class="form-label">Vendor Name</label>
+                        <input id="editInvoiceVendorName" type="text" class="form-control" maxlength="255" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Invoice No</label>
+                        <input id="editInvoiceNo" type="text" class="form-control" maxlength="100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Invoice Date</label>
+                        <input id="editInvoiceDate" type="date" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input id="editInvoiceAmount" type="number" step="0.01" min="0" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select id="editInvoiceType" class="form-select" required>
+                            <option value="product">Product (goods cost)</option>
+                            <option value="shipping">Shipping</option>
+                            <option value="customs">Customs</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <div class="form-text">Shipping/Customs/Other are prorated across this shipment's line items to compute landed cost. Product is already reflected in each line's unit price.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comments</label>
+                        <textarea id="editInvoiceComments" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div id="editInvoiceMsg" class="me-auto"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Invoice</button>
                 </div>
             </form>
         </div>
@@ -227,6 +505,15 @@
                     <div class="mb-3">
                         <label class="form-label">Payment Date</label>
                         <input id="paymentDate" type="date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Invoice</label>
+                        <select id="paymentInvoiceId" class="form-select">
+                            <option value="">Not linked to an invoice</option>
+                            {% for invoice in invoices %}
+                            <option value="{{ invoice.id }}">{{ invoice.vendor_name }}{% if invoice.invoice_no %} ({{ invoice.invoice_no }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description</label>
@@ -271,6 +558,15 @@
                         <input id="editPaymentDate" type="date" class="form-control" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Invoice</label>
+                        <select id="editPaymentInvoiceId" class="form-select">
+                            <option value="">Not linked to an invoice</option>
+                            {% for invoice in invoices %}
+                            <option value="{{ invoice.id }}">{{ invoice.vendor_name }}{% if invoice.invoice_no %} ({{ invoice.invoice_no }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Description</label>
                         <input id="editPaymentDescription" type="text" class="form-control" maxlength="255">
                     </div>
@@ -299,16 +595,76 @@
 
 <script>
     const shipmentId = {{ shipment.id }};
+    const ACTIVE_PRODUCTS_BY_SKU = Object.fromEntries(
+        ({{ active_products | tojson }}).map(p => [p.code, p])
+    );
 
     function showMsg(elId, text, type) {
         const el = document.getElementById(elId);
         if (el) el.innerHTML = `<div class="alert alert-${type} py-1 mb-0 small">${text}</div>`;
     }
 
+    function autoDescription(mode) {
+        const prefix = mode === 'edit' ? 'edit' : '';
+        const skuId  = prefix ? 'editDetailSKU'         : 'detailSKU';
+        const descId = prefix ? 'editDetailDescription' : 'detailDescription';
+        const product = ACTIVE_PRODUCTS_BY_SKU[document.getElementById(skuId).value];
+        if (product) document.getElementById(descId).value = product.description || '';
+    }
+
     // Set today's date when Add Payment modal opens
     document.getElementById('addPaymentModal').addEventListener('show.bs.modal', function () {
         this.querySelector('form').reset();
         document.getElementById('paymentDate').value = new Date().toISOString().slice(0, 10);
+    });
+
+    // Reset form when Add Invoice modal opens
+    document.getElementById('addInvoiceModal').addEventListener('show.bs.modal', function () {
+        this.querySelector('form').reset();
+    });
+
+    // Update Shipment Header
+    document.getElementById('editShipmentHeaderForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        fetch(`/shipments/${shipmentId}/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                supplier_name: document.getElementById('headerSupplierName').value,
+                shipment_no:   document.getElementById('headerShipmentNo').value,
+                date_received: document.getElementById('headerDateReceived').value,
+                comments:      document.getElementById('headerComments').value
+            })
+        })
+        .then(r => { if (!r.ok) throw r; return r.json(); })
+        .then(() => { showMsg('editShipmentHeaderMsg', 'Shipment updated!', 'success'); setTimeout(() => location.reload(), 700); })
+        .catch(() => showMsg('editShipmentHeaderMsg', 'Error updating shipment.', 'danger'));
+    });
+
+    // Bulk Upload Details
+    document.getElementById('bulkUploadDetailForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const file = document.getElementById('bulkUploadFile').files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('file', file);
+        fetch(`/shipments/${shipmentId}/details/bulk-upload`, {
+            method: 'POST',
+            body: fd
+        })
+        .then(r => { if (!r.ok) throw r; return r.json(); })
+        .then(result => {
+            let msg = `${result.inserted} row(s) added.`;
+            if (result.unmatched_skus.length) {
+                msg += ` ${result.unmatched_skus.length} row(s) had a SKU not in the Products catalog and were left blank — edit those rows to assign a product.`;
+            }
+            if (result.errors.length) {
+                msg += ` ${result.errors.length} row(s) skipped due to invalid data: ${result.errors.join('; ')}`;
+            }
+            showMsg('bulkUploadMsg', msg, result.errors.length ? 'warning' : 'success');
+            setTimeout(() => location.reload(), result.unmatched_skus.length || result.errors.length ? 2500 : 900);
+        })
+        .catch(() => showMsg('bulkUploadMsg', 'Error uploading CSV.', 'danger'));
     });
 
     // Add Detail
@@ -322,6 +678,7 @@
                 sku:         document.getElementById('detailSKU').value,
                 quantity:    parseInt(document.getElementById('detailQuantity').value),
                 unit_price:  parseFloat(document.getElementById('detailUnitPrice').value),
+                landed_cost: parseFloat(document.getElementById('detailLandedCost').value) || null,
                 comments:    document.getElementById('detailComments').value
             })
         })
@@ -342,12 +699,54 @@
                 sku:         document.getElementById('editDetailSKU').value,
                 quantity:    parseInt(document.getElementById('editDetailQuantity').value),
                 unit_price:  parseFloat(document.getElementById('editDetailUnitPrice').value),
+                landed_cost: parseFloat(document.getElementById('editDetailLandedCost').value) || null,
                 comments:    document.getElementById('editDetailComments').value
             })
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { showMsg('editDetailMsg', 'Detail updated!', 'success'); setTimeout(() => location.reload(), 700); })
         .catch(() => showMsg('editDetailMsg', 'Error updating detail.', 'danger'));
+    });
+
+    // Add Invoice
+    document.getElementById('addInvoiceForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        fetch(`/shipments/${shipmentId}/invoices/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                vendor_name:  document.getElementById('invoiceVendorName').value,
+                invoice_no:   document.getElementById('invoiceNo').value,
+                invoice_date: document.getElementById('invoiceDate').value || null,
+                amount:       parseFloat(document.getElementById('invoiceAmount').value),
+                invoice_type: document.getElementById('invoiceType').value,
+                comments:     document.getElementById('invoiceComments').value
+            })
+        })
+        .then(r => { if (!r.ok) throw r; return r.json(); })
+        .then(() => { showMsg('addInvoiceMsg', 'Invoice added!', 'success'); setTimeout(() => location.reload(), 700); })
+        .catch(() => showMsg('addInvoiceMsg', 'Error saving invoice.', 'danger'));
+    });
+
+    // Edit Invoice
+    document.getElementById('editInvoiceForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        fetch(`/shipments/${shipmentId}/invoices/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                invoice_id:   document.getElementById('editInvoiceId').value,
+                vendor_name:  document.getElementById('editInvoiceVendorName').value,
+                invoice_no:   document.getElementById('editInvoiceNo').value,
+                invoice_date: document.getElementById('editInvoiceDate').value || null,
+                amount:       parseFloat(document.getElementById('editInvoiceAmount').value),
+                invoice_type: document.getElementById('editInvoiceType').value,
+                comments:     document.getElementById('editInvoiceComments').value
+            })
+        })
+        .then(r => { if (!r.ok) throw r; return r.json(); })
+        .then(() => { showMsg('editInvoiceMsg', 'Invoice updated!', 'success'); setTimeout(() => location.reload(), 700); })
+        .catch(() => showMsg('editInvoiceMsg', 'Error updating invoice.', 'danger'));
     });
 
     // Add Payment
@@ -358,6 +757,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 payment_date: document.getElementById('paymentDate').value,
+                invoice_id:   document.getElementById('paymentInvoiceId').value || null,
                 description:  document.getElementById('paymentDescription').value,
                 amount:       parseFloat(document.getElementById('paymentAmount').value),
                 fee:          parseFloat(document.getElementById('paymentFee').value) || 0,
@@ -377,6 +777,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 payment_id:   document.getElementById('editPaymentId').value,
+                invoice_id:   document.getElementById('editPaymentInvoiceId').value || null,
                 payment_date: document.getElementById('editPaymentDate').value,
                 description:  document.getElementById('editPaymentDescription').value,
                 amount:       parseFloat(document.getElementById('editPaymentAmount').value),
@@ -389,24 +790,64 @@
         .catch(() => showMsg('editPaymentMsg', 'Error updating payment.', 'danger'));
     });
 
-    function openEditDetailModal(id, description, sku, quantity, unitPrice, comments) {
+    function openEditDetailModal(id, description, sku, quantity, unitPrice, landedCost, comments) {
         document.getElementById('editDetailId').value = id;
         document.getElementById('editDetailDescription').value = description || '';
-        document.getElementById('editDetailSKU').value = sku || '';
+
+        const skuSelect = document.getElementById('editDetailSKU');
+        skuSelect.querySelectorAll('option[data-injected]').forEach(o => o.remove());
+        if (sku && !ACTIVE_PRODUCTS_BY_SKU[sku]) {
+            // Current SKU is inactive or predates the products catalog link —
+            // add it so it doesn't silently get swapped for the first option.
+            const opt = document.createElement('option');
+            opt.value = sku;
+            opt.textContent = `${sku} (not an active product)`;
+            opt.dataset.injected = 'true';
+            skuSelect.appendChild(opt);
+        }
+        skuSelect.value = sku || '';
+
         document.getElementById('editDetailQuantity').value = quantity;
         document.getElementById('editDetailUnitPrice').value = unitPrice;
+        document.getElementById('editDetailLandedCost').value = landedCost !== null ? landedCost : '';
         document.getElementById('editDetailComments').value = comments || '';
         new bootstrap.Modal(document.getElementById('editShipmentDetailModal')).show();
     }
 
-    function openEditPaymentModal(id, paymentDate, description, amount, fee, comments) {
+    function openEditPaymentModal(id, invoiceId, paymentDate, description, amount, fee, comments) {
         document.getElementById('editPaymentId').value = id;
+        document.getElementById('editPaymentInvoiceId').value = invoiceId || '';
         document.getElementById('editPaymentDate').value = paymentDate;
         document.getElementById('editPaymentDescription').value = description || '';
         document.getElementById('editPaymentAmount').value = amount;
         document.getElementById('editPaymentFee').value = fee;
         document.getElementById('editPaymentComments').value = comments || '';
         new bootstrap.Modal(document.getElementById('editPaymentModal')).show();
+    }
+
+    function openEditInvoiceModal(id, vendorName, invoiceNo, invoiceDate, amount, invoiceType, comments) {
+        document.getElementById('editInvoiceId').value = id;
+        document.getElementById('editInvoiceVendorName').value = vendorName || '';
+        document.getElementById('editInvoiceNo').value = invoiceNo || '';
+        document.getElementById('editInvoiceDate').value = invoiceDate || '';
+        document.getElementById('editInvoiceAmount').value = amount;
+        document.getElementById('editInvoiceType').value = invoiceType || 'product';
+        document.getElementById('editInvoiceComments').value = comments || '';
+        new bootstrap.Modal(document.getElementById('editInvoiceModal')).show();
+    }
+
+    function deleteInvoice(id) {
+        if (!confirm('Delete this invoice? Any payments linked to it will become unlinked.')) return;
+        fetch(`/shipments/${shipmentId}/invoices/${id}`, { method: 'DELETE' })
+            .then(r => { if (!r.ok) throw r; location.reload(); })
+            .catch(() => alert('Error deleting invoice.'));
+    }
+
+    function deletePayment(id) {
+        if (!confirm('Delete this payment?')) return;
+        fetch(`/shipments/${shipmentId}/payments/${id}`, { method: 'DELETE' })
+            .then(r => { if (!r.ok) throw r; location.reload(); })
+            .catch(() => alert('Error deleting payment.'));
     }
 </script>
 {% endblock %}

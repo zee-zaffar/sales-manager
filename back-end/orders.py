@@ -13,6 +13,7 @@ def _serialize(o):
         'order_no':      o.order_no,
         'order_date':    o.order_date.isoformat() if o.order_date else None,
         'qty':           o.qty,
+        'sku':           o.sku,
         'source':        o.source,
         'color':         o.color,
         'platform':      o.platform,
@@ -35,6 +36,7 @@ def insert_order():
         order_no=data.get('order_no'),
         order_date=data.get('order_date'),
         qty=data.get('qty'),
+        sku=data.get('sku') or None,
         color=data.get('color'),
         source=data.get('source'),
         platform=data.get('platform'),
@@ -62,6 +64,7 @@ def update_order(order_no):
     data = request.json
     order.order_date    = data.get('order_date',    order.order_date)
     order.qty           = data.get('qty',           order.qty)
+    order.sku           = data.get('sku',           order.sku) or None
     order.color         = data.get('color',         order.color)
     order.source        = data.get('source',        order.source)
     order.platform      = data.get('platform',      order.platform)

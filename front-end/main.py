@@ -2,7 +2,7 @@
 import os
 import base64
 import json
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, Response, flash, redirect, render_template, request, url_for
 import requests
 from dotenv import load_dotenv
 import anthropic
@@ -20,6 +20,17 @@ sales_manager_api_url = os.getenv("SALES_MANAGER_API_URL", "").rstrip("/")
 def home():
     return render_template("index.html")
 
+@app.route("/inventory")
+def inventory():
+    inventory = []
+    try:
+        response = requests.get(f"{sales_manager_api_url}/inventory")
+        response.raise_for_status()
+        inventory = response.json()
+    except Exception as e:
+        print(f"Error fetching inventory: {e}")
+    return render_template("inventory.html", inventory=inventory)
+
 @app.route("/products")
 def products():
     products = []
@@ -32,6 +43,39 @@ def products():
         print(f"Error fetching products: {e}")
        
     return render_template("products_list.html", products = products)
+
+# Toggle a product's active status
+@app.route('/products/<code>/active', methods=['POST'])
+def update_product_active_modal(code):
+    try:
+        response = requests.put(
+            f"{sales_manager_api_url}/products/{code}/active",
+            json=request.get_json()
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Update a product
+@app.route('/products/<code>/update', methods=['POST'])
+def update_product_modal(code):
+    try:
+        response = requests.put(
+            f"{sales_manager_api_url}/products/{code}",
+            json=request.get_json()
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Delete a product
+@app.route('/products/<code>', methods=['DELETE'])
+def delete_product_modal(code):
+    try:
+        response = requests.delete(f"{sales_manager_api_url}/products/{code}")
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 @app.route("/process_receipts")
 def get_receipts():
@@ -85,6 +129,8 @@ def shipment_details(shipment_id):
     shipment = {}
     details = []
     payments = []
+    invoices = []
+    active_products = []
     try:
         response = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}")
         response.raise_for_status()
@@ -97,19 +143,46 @@ def shipment_details(shipment_id):
         response3 = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}/payments")
         response3.raise_for_status()
         payments = response3.json()
-    except Exception as e:
-        print(f"Error fetching shipment details/payments: {e}")
 
-    details_grand_total = sum(d['quantity'] * d['unit_price'] for d in details)
+        response4 = requests.get(f"{sales_manager_api_url}/shipments/{shipment_id}/invoices")
+        response4.raise_for_status()
+        invoices = response4.json()
+
+        response5 = requests.get(f"{sales_manager_api_url}/products", params={"active_only": "true"})
+        response5.raise_for_status()
+        active_products = response5.json()
+    except Exception as e:
+        print(f"Error fetching shipment details/payments/invoices: {e}")
+
+    details_grand_total = sum(
+        d['quantity'] * (d['landed_cost'] if d['landed_cost'] is not None else d['unit_price'])
+        for d in details
+    )
     payments_grand_total = sum(p['amount'] + p['fee'] for p in payments)
+    invoices_grand_total = sum(i['amount'] for i in invoices)
     return render_template(
         'shipment_details.html',
         shipment=shipment,
         details=details,
         payments=payments,
+        invoices=invoices,
+        active_products=active_products,
         details_grand_total=details_grand_total,
-        payments_grand_total=payments_grand_total
+        payments_grand_total=payments_grand_total,
+        invoices_grand_total=invoices_grand_total
     )
+
+# Update shipment header
+@app.route('/shipments/<int:shipment_id>/update', methods=['POST'])
+def update_shipment_header_modal(shipment_id):
+    try:
+        response = requests.put(
+            f"{sales_manager_api_url}/shipments/{shipment_id}",
+            json=request.get_json()
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 # Route to add new shipment form
 @app.route('/shipment/new')
@@ -221,6 +294,79 @@ def add_detail_modal(shipment_header_id):
     except Exception as e:
         return {"error": str(e)}, 500
 
+# Bulk-upload shipment details from a CSV
+@app.route('/shipments/<int:shipment_header_id>/details/bulk-upload', methods=['POST'])
+def bulk_upload_details_modal(shipment_header_id):
+    if 'file' not in request.files:
+        return {"error": "No file uploaded"}, 400
+    f = request.files['file']
+    try:
+        response = requests.post(
+            f"{sales_manager_api_url}/shipments/{shipment_header_id}/details/bulk-upload",
+            files={'file': (f.filename, f.stream, f.content_type)}
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Download a blank CSV template for bulk shipment detail upload
+@app.route('/shipments/detail-template.csv')
+def shipment_detail_template():
+    csv_content = "SKU,Description,Qty,Unit Price,Landed Cost,Comments\n"
+    return Response(
+        csv_content,
+        mimetype='text/csv',
+        headers={'Content-Disposition': 'attachment; filename=shipment_detail_template.csv'}
+    )
+
+# Add new invoice
+@app.route('/shipments/<int:shipment_header_id>/invoices/add', methods=['POST'])
+def add_invoice_modal(shipment_header_id):
+    try:
+        response = requests.post(
+            f"{sales_manager_api_url}/shipments/{shipment_header_id}/invoices",
+            json=request.get_json()
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Update invoice
+@app.route('/shipments/<int:header_id>/invoices/update', methods=['POST'])
+def update_invoice_modal(header_id):
+    data = request.get_json()
+    invoice_id = data.pop('invoice_id', None)
+    try:
+        response = requests.put(
+            f"{sales_manager_api_url}/shipments/{header_id}/invoices/{invoice_id}",
+            json=data
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Delete invoice
+@app.route('/shipments/<int:header_id>/invoices/<int:invoice_id>', methods=['DELETE'])
+def delete_invoice_modal(header_id, invoice_id):
+    try:
+        response = requests.delete(
+            f"{sales_manager_api_url}/shipments/{header_id}/invoices/{invoice_id}"
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Delete payment
+@app.route('/shipments/<int:header_id>/payments/<int:payment_id>', methods=['DELETE'])
+def delete_payment_modal(header_id, payment_id):
+    try:
+        response = requests.delete(
+            f"{sales_manager_api_url}/shipments/{header_id}/payments/{payment_id}"
+        )
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
 # Route to handle new product form submission
 @app.route('/products/new', methods=['POST'])
 def add_product():
@@ -229,7 +375,6 @@ def add_product():
         product = {
             "code": request.form.get('code'),
             "category": request.form.get('category'),
-            "cost": float(request.form.get('cost', 0)),
             "description": request.form.get('description'),
             "color": request.form.get('color', ''),
             "comments": request.form.get('comments', '')
@@ -250,13 +395,21 @@ def add_product():
 @app.route('/orders')
 def orders():
     orders = []
+    skus = []
     try:
         response = requests.get(f"{sales_manager_api_url}/orders")
         response.raise_for_status()
         orders = response.json()
+
+        # Sourced from inventory (SKUs actually received via shipments), not
+        # just the products catalog, since a SKU may be received before it's
+        # ever added as a formal product record.
+        response2 = requests.get(f"{sales_manager_api_url}/inventory")
+        response2.raise_for_status()
+        skus = response2.json()
     except Exception as e:
         print(f"Error fetching orders: {e}")
-    return render_template("orders.html", orders=orders)
+    return render_template("orders.html", orders=orders, skus=skus)
 
 # Monthly profit summary
 @app.route('/orders/monthly-summary', methods=['GET'])
@@ -277,6 +430,7 @@ def add_order():
             "order_date":    request.form.get('order_date'),
             "order_amount":  float(request.form.get('order_amount', 0)),
             "qty":           int(request.form.get('qty', 0)),
+            "sku":           request.form.get('sku') or None,
             "sales_tax":     float(request.form.get('sales_tax', 0)),
             "cost_of_goods": float(request.form.get('cost_of_goods', 0)),
             "shipping_cost": float(request.form.get('shipping_cost', 0)),
@@ -307,6 +461,7 @@ def update_order():
             "order_date":    request.form.get('order_date'),
             "order_amount":  float(request.form.get('order_amount', 0)),
             "qty":           int(request.form.get('qty', 0)),
+            "sku":           request.form.get('sku') or None,
             "sales_tax":     float(request.form.get('sales_tax', 0)),
             "cost_of_goods": float(request.form.get('cost_of_goods', 0)),
             "shipping_cost": float(request.form.get('shipping_cost', 0)),

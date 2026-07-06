@@ -1,11 +1,12 @@
 from main import app
 from flask import request, jsonify
-from products import get_all_products, add_new_product
-from shipments import get_all_shipments_header, get_all_payments, get_payments_by_shipment_header_id, get_shipment_by_header_id, add_shipment_header, add_new_shipment_detail, get_shipment_details, add_new_payment, edit_shipment_detail, edit_payment
+from products import get_all_products, add_new_product, update_product_active, update_product, delete_product
+from shipments import get_all_shipments_header, get_all_payments, get_payments_by_shipment_header_id, get_shipment_by_header_id, add_shipment_header, add_new_shipment_detail, bulk_add_shipment_details, get_shipment_details, add_new_payment, edit_shipment_detail, edit_payment, get_invoices_by_shipment_header_id, add_new_invoice, edit_invoice, delete_invoice, delete_payment, edit_shipment_header
 from orders import get_orders, insert_order, get_order_by_no, update_order, get_monthly_summary
 from etsy import get_receipt
 from api_models import Receipt
 from suppliers import get_all_suppliers, add_new_supplier, update_supplier
+from inventory import get_inventory
 
 # Route to get all orders
 @app.route('/orders', methods=['GET'])
@@ -59,6 +60,13 @@ def add_new_shipment():
 def get_shipment(shipment_header_id):
    return get_shipment_by_header_id(shipment_header_id)
 
+# Update shipment header
+@app.route('/shipments/<int:shipment_header_id>', methods=['PUT'])
+def update_shipment_header_route(shipment_header_id: int):
+    update_data = request.json
+    result, status_code = edit_shipment_header(shipment_header_id, update_data)
+    return jsonify(result), status_code
+
 #Get shipment details by header id
 @app.route('/shipments/<int:shipment_header_id>/details', methods=['GET'])
 def shipment_details(shipment_header_id:int):
@@ -68,7 +76,16 @@ def shipment_details(shipment_header_id:int):
 @app.route('/shipments/<int:shipment_header_id>/details', methods=['POST'])
 def add_shipment_detail(shipment_header_id: int):
     shipment_detail = request.json
-    return add_new_shipment_detail(shipment_header_id, shipment_detail)
+    detail_id = add_new_shipment_detail(shipment_header_id, shipment_detail)
+    return jsonify({'id': detail_id}), 201
+
+# Bulk-upload shipment details from a CSV
+@app.route('/shipments/<int:shipment_header_id>/details/bulk-upload', methods=['POST'])
+def bulk_upload_shipment_details(shipment_header_id: int):
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file uploaded'}), 400
+    result = bulk_add_shipment_details(shipment_header_id, request.files['file'].stream)
+    return jsonify(result), 201
 
 # Update shipment detail
 @app.route('/shipments/<int:header_id>/details/<int:detail_id>', methods=['PUT'])
@@ -106,7 +123,38 @@ def update_payment_route(header_id: int, payment_id: int):
     
     # Call the update function
     result, status_code = edit_payment(payment_id, update_data)
-        
+
+    return jsonify(result), status_code
+
+# Delete payment
+@app.route('/shipments/<int:header_id>/payments/<int:payment_id>', methods=['DELETE'])
+def delete_payment_route(header_id: int, payment_id: int):
+    result, status_code = delete_payment(payment_id)
+    return jsonify(result), status_code
+
+#Get invoices for a shipment
+@app.route('/shipments/<int:shipment_header_id>/invoices', methods=['GET'])
+def get_invoices_for_shipment(shipment_header_id: int):
+    return get_invoices_by_shipment_header_id(shipment_header_id)
+
+# Add new invoice
+@app.route('/shipments/<int:shipment_header_id>/invoices', methods=['POST'])
+def add_invoice(shipment_header_id: int):
+    invoice = request.json
+    invoice_id = add_new_invoice(shipment_header_id, invoice)
+    return jsonify({'id': invoice_id}), 201
+
+# Update invoice
+@app.route('/shipments/<int:header_id>/invoices/<int:invoice_id>', methods=['PUT'])
+def update_invoice_route(header_id: int, invoice_id: int):
+    update_data = request.json
+    result, status_code = edit_invoice(invoice_id, update_data)
+    return jsonify(result), status_code
+
+# Delete invoice
+@app.route('/shipments/<int:header_id>/invoices/<int:invoice_id>', methods=['DELETE'])
+def delete_invoice_route(header_id: int, invoice_id: int):
+    result, status_code = delete_invoice(invoice_id)
     return jsonify(result), status_code
 
 #Get all payments
@@ -117,7 +165,20 @@ def get_payments():
 #Get all products
 @app.route('/products', methods=['GET'])
 def get_products():
-    return get_all_products()
+    active_only = request.args.get('active_only', 'false').lower() == 'true'
+    return get_all_products(active_only=active_only)
+
+# Toggle a product's active status
+@app.route('/products/<code>/active', methods=['PUT'])
+def update_product_active_route(code):
+    data = request.json
+    result, status_code = update_product_active(code, data.get('active'))
+    return jsonify(result), status_code
+
+# Get computed inventory (received via shipments minus ordered)
+@app.route('/inventory', methods=['GET'])
+def inventory_list():
+    return get_inventory()
 
 @app.route('/shipments/<int:shipment_header_id>/payments', methods=['GET'])
 def get_payments_for_shipment(shipment_header_id: int):
@@ -130,6 +191,19 @@ def add_product():
     print("Received data for new product:", data)
     product_code =  add_new_product(data)
     return jsonify({'product_code': product_code}), 201
+
+# Update a product
+@app.route('/products/<code>', methods=['PUT'])
+def update_product_route(code):
+    data = request.json
+    result, status_code = update_product(code, data)
+    return jsonify(result), status_code
+
+# Delete a product
+@app.route('/products/<code>', methods=['DELETE'])
+def delete_product_route(code):
+    result, status_code = delete_product(code)
+    return jsonify(result), status_code
 
 # Supplier routes
 @app.route('/suppliers', methods=['GET'])

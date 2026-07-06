@@ -5,6 +5,7 @@ class Orders(db.Model):
     order_no = db.Column(db.String(100), primary_key=True)
     order_date = db.Column(db.Date, nullable=False)
     qty = db.Column(db.Integer, nullable=False)
+    sku = db.Column(db.String(100), db.ForeignKey('products.code'))
     color = db.Column(db.String(100))
     source = db.Column(db.String(100))
     platform = db.Column(db.String(100))
@@ -24,6 +25,7 @@ class ShipmentHeader(db.Model):
     comments = db.Column(db.Text)
     details = db.relationship('ShipmentDetail', backref='header', cascade="all, delete-orphan")
     payments = db.relationship('Payment', backref='header', cascade="all, delete-orphan")
+    invoices = db.relationship('Invoice', backref='header', cascade="all, delete-orphan")
 
 class ShipmentDetail(db.Model):
     __tablename__ = 'shipment_detail'
@@ -33,12 +35,27 @@ class ShipmentDetail(db.Model):
     sku = db.Column(db.String(100))
     quantity = db.Column(db.Integer)
     unit_price = db.Column(db.Numeric(18,2))
+    landed_cost = db.Column(db.Numeric(18,2))
     comments = db.Column(db.Text)
+
+class Invoice(db.Model):
+    __tablename__ = 'invoices'
+    id = db.Column(db.Integer, primary_key=True)
+    shipment_header_id = db.Column(db.Integer, db.ForeignKey('shipment_header.id'), nullable=False)
+    vendor_name = db.Column(db.String(255), nullable=False)
+    invoice_no = db.Column(db.String(100))
+    invoice_date = db.Column(db.Date)
+    amount = db.Column(db.Numeric(18,2), nullable=False)
+    # Categorizes the invoice as 'product', 'shipping', 'customs', or 'other'.
+    invoice_type = db.Column(db.String(20), nullable=False, default='product')
+    comments = db.Column(db.Text)
+    payments = db.relationship('Payment', backref='invoice')
 
 class Payment(db.Model):
     __tablename__ = 'payments'
     id = db.Column(db.Integer, primary_key=True)
     shipment_header_id = db.Column(db.Integer, db.ForeignKey('shipment_header.id'), nullable=False)
+    invoice_id = db.Column(db.Integer, db.ForeignKey('invoices.id'), nullable=True)
     payment_date = db.Column(db.Date, nullable=False)
     description = db.Column(db.String(100), nullable=False)
     amount = db.Column(db.Numeric(18,2), nullable=False)
@@ -51,7 +68,7 @@ class Products(db.Model):
     category = db.Column(db.String, nullable=False)
     description = db.Column(db.String, nullable=False)
     color = db.Column(db.String(100), nullable=False)
-    cost = db.Column(db.Numeric(18,2), nullable=False)
+    active = db.Column(db.Boolean, nullable=False, default=True)
     comments = db.Column(db.Text)
 
 class Supplier(db.Model):

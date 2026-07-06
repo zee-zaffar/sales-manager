@@ -66,6 +66,7 @@
         <th class="text-end">Shipping</th>
         <th class="text-end">Plat. Fee</th>
         <th class="text-end">Net Profit</th>
+        <th>SKU</th>
         <th>Color / Source</th>
         <th></th>
       </tr>
@@ -96,6 +97,7 @@
         <td class="text-end fw-semibold {% if profit >= 0 %}text-success{% else %}text-danger{% endif %}">
           ${{ "%.2f"|format(profit|float) }}
         </td>
+        <td class="text-muted small">{{ order.sku or '—' }}</td>
         <td class="text-muted small">{{ order.color }}{% if order.color and order.source %} / {% endif %}{{ order.source }}</td>
         <td>
           <button class="btn btn-sm btn-outline-secondary"
@@ -107,7 +109,7 @@
       </tr>
       {% else %}
       <tr>
-        <td colspan="12" class="text-center text-muted py-4">
+        <td colspan="13" class="text-center text-muted py-4">
           <i class="bi bi-inbox fs-4 d-block mb-2 opacity-50"></i>No orders found.
         </td>
       </tr>
@@ -139,6 +141,15 @@
             <div class="col-md-2">
               <label class="form-label">Qty</label>
               <input type="number" class="form-control" id="qty" name="qty" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Product (SKU)</label>
+              <select class="form-select" id="sku" name="sku" onchange="autoColor('add')" required>
+                <option value="">Select…</option>
+                {% for product in skus %}
+                <option value="{{ product.code }}">{{ product.code }} &mdash; {{ product.description }}{% if product.color %} ({{ product.color }}){% endif %}</option>
+                {% endfor %}
+              </select>
             </div>
             <div class="col-md-2">
               <label class="form-label">Color</label>
@@ -233,6 +244,15 @@
               <label class="form-label">Qty</label>
               <input type="number" class="form-control" id="editQty" name="qty" required>
             </div>
+            <div class="col-md-4">
+              <label class="form-label">Product (SKU)</label>
+              <select class="form-select" id="editSku" name="sku" onchange="autoColor('edit')" required>
+                <option value="">Select…</option>
+                {% for product in skus %}
+                <option value="{{ product.code }}">{{ product.code }} &mdash; {{ product.description }}{% if product.color %} ({{ product.color }}){% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
             <div class="col-md-3">
               <label class="form-label">Color</label>
               <input type="text" class="form-control" id="editColor" name="color">
@@ -306,8 +326,20 @@
 <script>
 // ── Platform fee rates ────────────────────────────────────────────
 const FEE_RATES = { Etsy: 0.065, eBay: 0.1325, Facebook: 0.10, Other: 0 };
+const PRODUCTS_BY_SKU = Object.fromEntries(
+  ({{ skus | tojson }}).map(p => [p.code, p])
+);
 
 function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function autoColor(mode) {
+  const prefix = mode === 'edit' ? 'edit' : '';
+  const skuId   = prefix ? 'editSku'   : 'sku';
+  const colorId = prefix ? 'editColor' : 'color';
+  const sku = document.getElementById(skuId).value;
+  const product = PRODUCTS_BY_SKU[sku];
+  if (product) document.getElementById(colorId).value = product.color || '';
+}
 
 function autoFee(mode) {
   const prefix  = mode === 'edit' ? 'edit' : '';
@@ -341,6 +373,7 @@ document.getElementById('editOrderModal').addEventListener('show.bs.modal', func
   document.getElementById('editOrderDate').value     = (o.order_date || '').split('T')[0];
   document.getElementById('editOrderAmount').value   = o.order_amount;
   document.getElementById('editQty').value           = o.qty;
+  document.getElementById('editSku').value           = o.sku || '';
   document.getElementById('editSalesTax').value      = o.sales_tax;
   document.getElementById('editPlatform').value      = o.platform;
   document.getElementById('editSource').value        = o.source;
