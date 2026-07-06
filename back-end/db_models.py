@@ -10,6 +10,9 @@ class Orders(db.Model):
     platform = db.Column(db.String(100))
     order_amount = db.Column(db.Numeric(18,2))
     sales_tax = db.Column(db.Numeric(18,2))
+    cost_of_goods = db.Column(db.Numeric(18,2), default=0)
+    shipping_cost = db.Column(db.Numeric(18,2), default=0)
+    platform_fee = db.Column(db.Numeric(18,2), default=0)
     comments = db.Column(db.Text)
 
 class ShipmentHeader(db.Model):

@@ -1,8 +1,11 @@
 
 import os
+import base64
+import json
 from flask import Flask, flash, redirect, render_template, request, url_for
 import requests
 from dotenv import load_dotenv
+import anthropic
 # from api.oauth_token import get_refresh_token
 from business.orders import process_receipts
 
@@ -255,29 +258,40 @@ def orders():
         print(f"Error fetching orders: {e}")
     return render_template("orders.html", orders=orders)
 
+# Monthly profit summary
+@app.route('/orders/monthly-summary', methods=['GET'])
+def orders_monthly_summary():
+    try:
+        response = requests.get(f"{sales_manager_api_url}/orders/monthly-summary")
+        response.raise_for_status()
+        return response.json(), 200
+    except Exception as e:
+        return {"error": str(e)}, 500
+
 # Route to add a new order
 @app.route('/add_order', methods=['POST'])
 def add_order():
     try:
         order = {
-            "order_no": request.form.get('order_no'),
-            "order_date": request.form.get('order_date'),
-            "order_amount": float(request.form.get('order_amount', 0)),
-            "qty": int(request.form.get('qty', 0)),
-            "sales_tax": float(request.form.get('sales_tax', 0)),
-            "platform": request.form.get('platform'),
-            "source": request.form.get('source'),
-            "color": request.form.get('color', ''),
-            "comments": request.form.get('comments', '')
+            "order_no":      request.form.get('order_no'),
+            "order_date":    request.form.get('order_date'),
+            "order_amount":  float(request.form.get('order_amount', 0)),
+            "qty":           int(request.form.get('qty', 0)),
+            "sales_tax":     float(request.form.get('sales_tax', 0)),
+            "cost_of_goods": float(request.form.get('cost_of_goods', 0)),
+            "shipping_cost": float(request.form.get('shipping_cost', 0)),
+            "platform_fee":  float(request.form.get('platform_fee', 0)),
+            "platform":      request.form.get('platform'),
+            "source":        request.form.get('source'),
+            "color":         request.form.get('color', ''),
+            "comments":      request.form.get('comments', '')
         }
     except Exception as e:
         print(f"Invalid order payload: {e}")
         return {"success": False, "error": "Invalid payload"}, 400
 
-    # Call backend API to insert order
-    backend_api_url = f"{sales_manager_api_url}/orders"
     try:
-        backend_response = requests.post(backend_api_url, json=order)
+        backend_response = requests.post(f"{sales_manager_api_url}/orders", json=order)
         backend_response.raise_for_status()
         return {"success": True}, 201
     except Exception as e:
@@ -289,15 +303,18 @@ def add_order():
 def update_order():
     try:
         order = {
-            "order_no": request.form.get('order_no'),
-            "order_date": request.form.get('order_date'),
-            "order_amount": float(request.form.get('order_amount', 0)),
-            "qty": int(request.form.get('qty', 0)),
-            "sales_tax": float(request.form.get('sales_tax', 0)),
-            "platform": request.form.get('platform'),
-            "source": request.form.get('source'),
-            "color": request.form.get('color', ''),
-            "comments": request.form.get('comments', '')
+            "order_no":      request.form.get('order_no'),
+            "order_date":    request.form.get('order_date'),
+            "order_amount":  float(request.form.get('order_amount', 0)),
+            "qty":           int(request.form.get('qty', 0)),
+            "sales_tax":     float(request.form.get('sales_tax', 0)),
+            "cost_of_goods": float(request.form.get('cost_of_goods', 0)),
+            "shipping_cost": float(request.form.get('shipping_cost', 0)),
+            "platform_fee":  float(request.form.get('platform_fee', 0)),
+            "platform":      request.form.get('platform'),
+            "source":        request.form.get('source'),
+            "color":         request.form.get('color', ''),
+            "comments":      request.form.get('comments', '')
         }
     except Exception as e:
         print(f"Invalid update payload: {e}")
@@ -313,6 +330,75 @@ def update_order():
     except Exception as e:
         print(f"Error updating order: {e}")
         return {"success": False, "error": str(e)}, 400
+
+# Parse order details from an uploaded screenshot using Claude vision
+@app.route('/orders/parse-screenshot', methods=['POST'])
+def parse_order_screenshot():
+    if 'screenshot' not in request.files:
+        return {"error": "No file uploaded"}, 400
+    f = request.files['screenshot']
+    if not f.filename:
+        return {"error": "Empty file"}, 400
+
+    raw = f.read()
+    media_type = f.content_type or 'image/png'
+    if not media_type.startswith('image/'):
+        return {"error": "File must be an image"}, 400
+
+    image_b64 = base64.standard_b64encode(raw).decode('utf-8')
+
+    api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return {"error": "ANTHROPIC_API_KEY not configured"}, 500
+
+    client = anthropic.Anthropic(api_key=api_key)
+    prompt = (
+        "Extract order details from this ecommerce order screenshot (Etsy, eBay, or Facebook Marketplace).\n"
+        "Return ONLY a JSON object with these exact fields (use null for fields not found):\n"
+        "{\n"
+        '  "order_no": "order number or transaction ID",\n'
+        '  "order_date": "YYYY-MM-DD",\n'
+        '  "order_amount": 0.00,\n'
+        '  "qty": 1,\n'
+        '  "sales_tax": 0.00,\n'
+        '  "platform": "Etsy" or "eBay" or "Facebook" or "Other",\n'
+        '  "source": "listing title or item name",\n'
+        '  "color": "color or variant if visible or null"\n'
+        "}\n"
+        "Return only the JSON — no explanation, no markdown fences."
+    )
+    try:
+        message = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=512,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": media_type,
+                            "data": image_b64,
+                        },
+                    },
+                    {"type": "text", "text": prompt},
+                ],
+            }],
+        )
+    except Exception as e:
+        return {"error": f"Claude API error: {str(e)}"}, 500
+
+    text = message.content[0].text.strip()
+    # Strip accidental markdown fences
+    if text.startswith("```"):
+        parts = text.split("```")
+        text = parts[1].lstrip("json").strip() if len(parts) > 1 else text
+    try:
+        parsed = json.loads(text)
+        return {"success": True, "order": parsed}, 200
+    except Exception:
+        return {"error": "Could not parse extracted data", "raw": text}, 500
 
 # Route to query an order by order number
 @app.route('/orders/<order_no>')
