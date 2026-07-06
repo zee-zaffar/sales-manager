@@ -1,10 +1,126 @@
 {% extends 'base.html' %}
-
-{% block title %} Home {% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div>
-    THis is Home page
+<!-- Hero -->
+<div class="rounded-3 overflow-hidden mb-4 position-relative" style="height:180px;">
+  <img src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=900&q=85&fit=crop&crop=center"
+       alt="Luxury marble chess set"
+       style="width:100%;height:100%;object-fit:cover;object-position:center 40%;">
+  <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-end"
+       style="background:linear-gradient(to top,rgba(15,23,42,.75) 40%,transparent);">
+    <div class="p-4">
+      <h1 class="text-white fw-bold mb-1" style="font-size:1.9rem;letter-spacing:-.03em;">Marble Ecommerce Manager</h1>
+      <p class="text-white-50 mb-0" style="font-size:.9rem;">Track shipments, orders, and profitability across all platforms.</p>
+    </div>
+  </div>
 </div>
 
+<!-- KPI cards — current month -->
+<div class="row g-3 mb-4" id="kpiRow">
+  <!-- placeholders while loading -->
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-label">This Month Revenue</div>
+      <div class="kpi-value text-primary" id="kpiRevenue">…</div>
+      <div class="kpi-sub" id="kpiMonth">loading</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-label">This Month Profit</div>
+      <div class="kpi-value" id="kpiProfit">…</div>
+      <div class="kpi-sub" id="kpiMargin">—</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-label">Orders This Month</div>
+      <div class="kpi-value text-primary" id="kpiOrders">…</div>
+      <div class="kpi-sub">orders placed</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="kpi-card">
+      <div class="kpi-label">Platform Fees</div>
+      <div class="kpi-value text-warning" id="kpiFees">…</div>
+      <div class="kpi-sub">Etsy / eBay / FB</div>
+    </div>
+  </div>
+</div>
+
+<!-- Nav cards -->
+<div class="row g-3">
+  <div class="col-md-4">
+    <a href="/shipments" class="text-decoration-none">
+      <div class="panel p-3 d-flex align-items-center gap-3" style="cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(37,99,235,.15)'" onmouseout="this.style.boxShadow=''">
+        <div class="rounded-2 d-flex align-items-center justify-content-center text-white flex-shrink-0"
+             style="width:48px;height:48px;background:#2563eb;">
+          <i class="bi bi-box-seam fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-semibold">Shipments</div>
+          <div class="text-muted small">Track inbound stock from suppliers</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="/orders" class="text-decoration-none">
+      <div class="panel p-3 d-flex align-items-center gap-3" style="cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(37,99,235,.15)'" onmouseout="this.style.boxShadow=''">
+        <div class="rounded-2 d-flex align-items-center justify-content-center text-white flex-shrink-0"
+             style="width:48px;height:48px;background:#0891b2;">
+          <i class="bi bi-receipt fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-semibold">Orders</div>
+          <div class="text-muted small">Manage sales and track profitability</div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-4">
+    <a href="/suppliers" class="text-decoration-none">
+      <div class="panel p-3 d-flex align-items-center gap-3" style="cursor:pointer;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(37,99,235,.15)'" onmouseout="this.style.boxShadow=''">
+        <div class="rounded-2 d-flex align-items-center justify-content-center text-white flex-shrink-0"
+             style="width:48px;height:48px;background:#7c3aed;">
+          <i class="bi bi-people fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-semibold">Suppliers</div>
+          <div class="text-muted small">Manage your marble suppliers</div>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<script>
+(function () {
+  fetch('/orders/monthly-summary')
+    .then(r => r.json())
+    .then(rows => {
+      if (!rows || !rows.length) return;
+      // rows are ordered desc, so rows[0] = most recent month
+      const cur = rows[0];
+      const revenue = parseFloat(cur.revenue || 0);
+      const profit  = parseFloat(cur.net_profit || 0);
+      const fees    = parseFloat(cur.fees || 0);
+      const margin  = revenue ? (profit / revenue * 100).toFixed(1) + '% margin' : '—';
+
+      document.getElementById('kpiRevenue').textContent = '$' + revenue.toFixed(2);
+      document.getElementById('kpiProfit').textContent  = '$' + profit.toFixed(2);
+      document.getElementById('kpiProfit').className    = 'kpi-value ' + (profit >= 0 ? 'text-success' : 'text-danger');
+      document.getElementById('kpiMargin').textContent  = margin;
+      document.getElementById('kpiOrders').textContent  = cur.order_count;
+      document.getElementById('kpiFees').textContent    = '$' + fees.toFixed(2);
+      document.getElementById('kpiMonth').textContent   = cur.month;
+    })
+    .catch(() => {
+      ['kpiRevenue','kpiProfit','kpiOrders','kpiFees'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+      });
+    });
+})();
+</script>
 {% endblock %}

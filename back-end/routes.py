@@ -2,7 +2,7 @@ from main import app
 from flask import request, jsonify
 from products import get_all_products, add_new_product
 from shipments import get_all_shipments_header, get_all_payments, get_payments_by_shipment_header_id, get_shipment_by_header_id, add_shipment_header, add_new_shipment_detail, get_shipment_details, add_new_payment, edit_shipment_detail, edit_payment
-from orders import get_orders, insert_order, get_order_by_no, update_order
+from orders import get_orders, insert_order, get_order_by_no, update_order, get_monthly_summary
 from etsy import get_receipt
 from api_models import Receipt
 from suppliers import get_all_suppliers, add_new_supplier, update_supplier
@@ -11,6 +11,11 @@ from suppliers import get_all_suppliers, add_new_supplier, update_supplier
 @app.route('/orders', methods=['GET'])
 def orders_list():
     return get_orders()
+
+# Monthly profit summary
+@app.route('/orders/monthly-summary', methods=['GET'])
+def orders_monthly_summary():
+    return get_monthly_summary()
 
 # Route to get all orders
 @app.route('/etsy/receipts/<int:receipt_id>', methods=['GET'])

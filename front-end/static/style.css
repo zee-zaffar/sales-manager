@@ -1,13 +1,177 @@
-  nav{
-            background-color: rgb(197, 229, 100);
-            color: white;
-            display: flex;
-            justify-content: center;
-            gap: 7px;
-            
-        }
+/* ── Base ──────────────────────────────────────────────────────── */
+:root {
+  --navy:    #0f172a;
+  --primary: #2563eb;
+  --surface: #ffffff;
+  --muted:   #64748b;
+  --border:  #e2e8f0;
+  --radius:  0.5rem;
+}
 
-        footer{
-            background-color: rgb(3, 59, 59);
-            color: white;
-        }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 0.925rem;
+}
+
+/* ── Navbar ────────────────────────────────────────────────────── */
+.navbar {
+  background: var(--navy) !important;
+  padding: 0.6rem 1.5rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: -.02em;
+  font-size: 1.15rem;
+}
+.navbar .nav-link {
+  font-weight: 500;
+  font-size: 0.88rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.35rem;
+  transition: background .15s;
+}
+.navbar .nav-link:hover {
+  background: rgba(255,255,255,.1);
+}
+
+/* ── Page header ───────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1.25rem 0 1rem;
+}
+.page-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -.02em;
+}
+
+/* ── Panel (card-like section) ─────────────────────────────────── */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: #f8fafc;
+}
+.panel-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* ── Table wrapper ─────────────────────────────────────────────── */
+.table-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+
+/* ── Tables ────────────────────────────────────────────────────── */
+.table {
+  margin: 0;
+  font-size: 0.875rem;
+}
+.table thead th {
+  background: #f1f5f9;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding: 0.65rem 0.9rem;
+}
+.table tbody td {
+  padding: 0.65rem 0.9rem;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+}
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+.table-striped > tbody > tr:nth-of-type(odd) > td {
+  background: #fafbfc;
+}
+
+/* Grand total row in summary table */
+.grand-total-row td {
+  background: #eff6ff !important;
+  border-top: 2px solid var(--primary);
+  font-weight: 700;
+}
+
+/* ── Badges ────────────────────────────────────────────────────── */
+.badge {
+  font-size: 0.73rem;
+  font-weight: 600;
+  padding: 0.3em 0.6em;
+  border-radius: 0.3rem;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  font-weight: 500;
+}
+.btn-primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* ── Footer ────────────────────────────────────────────────────── */
+footer {
+  background: var(--navy);
+  color: rgba(255,255,255,.6);
+}
+footer .footer {
+  background: var(--navy) !important;
+  border-top: 1px solid rgba(255,255,255,.08) !important;
+}
+footer .text-muted {
+  color: rgba(255,255,255,.5) !important;
+}
+
+/* ── KPI cards (dashboard) ─────────────────────────────────────── */
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
+.kpi-card .kpi-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+.kpi-card .kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -.03em;
+  line-height: 1;
+}
+.kpi-card .kpi-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
