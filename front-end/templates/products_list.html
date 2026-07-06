@@ -18,9 +18,10 @@
                                         <th>Code</th>
                                         <th>Category</th>
                                         <th>Color</th>
-                                        <th>Cost</th>
                                         <th>Description</th>
                                         <th>Comments</th>
+                                        <th>Active</th>
+                                        <th></th>
                                 </tr>
                         </thead>
                         <tbody>
@@ -29,10 +30,25 @@
                                         <td>{{ product.code }}</td>
                                         <td>{{ product.category }}</td>
                                         <td>{{ product.color }}</td>
-                                        <td>{{ product.cost }}</td>
                                         <td>{{ product.description }}</td>
                                         <td>{{ product.comments }}</td>
-
+                                        <td>
+                                                <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                                {% if product.active %}checked{% endif %}
+                                                                onchange="toggleActive('{{ product.code }}', this.checked)">
+                                                </div>
+                                        </td>
+                                        <td>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                        onclick='openEditProductModal({{ product.code|tojson }}, {{ product.category|tojson }}, {{ product.color|tojson }}, {{ product.description|tojson }}, {{ product.comments|tojson }})'>
+                                                        Edit
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        onclick='deleteProduct({{ product.code|tojson }})'>
+                                                        Delete
+                                                </button>
+                                        </td>
                                 </tr>
                                 {% endfor %}
                         </tbody>
@@ -67,11 +83,6 @@
                                                         name="category" required>
                                         </div>
                                         <div class="mb-3">
-                                                <label for="Cost" class="form-label">Cost</label>
-                                                <input type="number" step="0.01" class="form-control" id="cost"
-                                                        name="cost" required>
-                                        </div>
-                                        <div class="mb-3">
                                                 <label for="Description" class="form-label">Description</label>
                                                 <textarea class="form-control" id="description"
                                                         name="description" rows="2"></textarea>
@@ -79,6 +90,47 @@
                                         <button type="submit" class="btn btn-success">Add Product</button>
                                 </form>
                                 <div id="addProductMsg" class="mt-2"></div>
+                        </div>
+                </div>
+        </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+                <div class="modal-content">
+                        <div class="modal-header">
+                                <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                                <form id="editProductForm">
+                                        <input type="hidden" id="editProductCode">
+                                        <div class="mb-3">
+                                                <label class="form-label">Product Code</label>
+                                                <input type="text" class="form-control" id="editProductCodeNew" required>
+                                                <div class="form-text">Changing this renames the SKU everywhere it's referenced (shipment details, orders).</div>
+                                        </div>
+                                        <div class="mb-3">
+                                                <label class="form-label">Color</label>
+                                                <input type="text" class="form-control" id="editColor" required>
+                                        </div>
+                                        <div class="mb-3">
+                                                <label class="form-label">Category</label>
+                                                <input type="text" class="form-control" id="editCategory" required>
+                                        </div>
+                                        <div class="mb-3">
+                                                <label class="form-label">Description</label>
+                                                <textarea class="form-control" id="editDescription" rows="2"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                                <label class="form-label">Comments</label>
+                                                <textarea class="form-control" id="editComments" rows="2"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Update Product</button>
+                                </form>
+                                <div id="editProductMsg" class="mt-2"></div>
                         </div>
                 </div>
         </div>
@@ -108,6 +160,56 @@
                                 document.getElementById('addProductMsg').innerHTML = '<div class="alert alert-danger">Error occurred.</div>';
                         });
         });
+
+        function toggleActive(code, active) {
+                fetch(`/products/${code}/active`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ active: active })
+                }).catch(() => alert('Error updating product status.'));
+        }
+
+        function openEditProductModal(code, category, color, description, comments) {
+                document.getElementById('editProductCode').value = code;
+                document.getElementById('editProductCodeNew').value = code;
+                document.getElementById('editCategory').value = category || '';
+                document.getElementById('editColor').value = color || '';
+                document.getElementById('editDescription').value = description || '';
+                document.getElementById('editComments').value = comments || '';
+                new bootstrap.Modal(document.getElementById('editProductModal')).show();
+        }
+
+        document.getElementById('editProductForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const originalCode = document.getElementById('editProductCode').value;
+                fetch(`/products/${originalCode}/update`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                                code:        document.getElementById('editProductCodeNew').value,
+                                category:    document.getElementById('editCategory').value,
+                                color:       document.getElementById('editColor').value,
+                                description: document.getElementById('editDescription').value,
+                                comments:    document.getElementById('editComments').value
+                        })
+                })
+                        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+                        .then(({ ok, data }) => {
+                                if (!ok) throw new Error(data.message || 'Error updating product.');
+                                document.getElementById('editProductMsg').innerHTML = '<div class="alert alert-success">Product updated!</div>';
+                                setTimeout(() => location.reload(), 700);
+                        })
+                        .catch(err => {
+                                document.getElementById('editProductMsg').innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+                        });
+        });
+
+        function deleteProduct(code) {
+                if (!confirm(`Delete product ${code}? This cannot be undone.`)) return;
+                fetch(`/products/${code}`, { method: 'DELETE' })
+                        .then(r => { if (!r.ok) throw r; location.reload(); })
+                        .catch(() => alert('Error deleting product.'));
+        }
 </script>
 
 {% endblock %}
