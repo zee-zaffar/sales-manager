@@ -10,6 +10,9 @@
       <i class="bi bi-camera me-1"></i> Import from Screenshot
     </button>
     <input type="file" id="screenshotInput" accept="image/*" class="d-none">
+    <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#etsySyncModal">
+      <i class="bi bi-cloud-download me-1"></i> Sync from Etsy
+    </button>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOrderModal">
       <i class="bi bi-plus-lg me-1"></i> New Order
     </button>
@@ -323,6 +326,54 @@
   </div>
 </div>
 
+<!-- ── Sync from Etsy Modal ─────────────────────────────────────── -->
+<div class="modal fade" id="etsySyncModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Sync Orders from Etsy</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex gap-2 align-items-end mb-3">
+          <div>
+            <label class="form-label">Month</label>
+            <input type="month" class="form-control" id="etsySyncMonth">
+          </div>
+          <button type="button" class="btn btn-primary" id="etsyFetchBtn" onclick="fetchEtsyReceipts()">
+            <i class="bi bi-search me-1"></i> Fetch Receipts
+          </button>
+        </div>
+        <div id="etsySyncMsg"></div>
+        <div class="table-responsive d-none" id="etsyResultsWrapper">
+          <table class="table table-sm table-striped align-middle">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="etsySelectAll" onchange="toggleAllEtsyRows(this.checked)"></th>
+                <th>Receipt #</th>
+                <th>Date</th>
+                <th>Item(s)</th>
+                <th>SKU</th>
+                <th>Qty</th>
+                <th>Amount</th>
+                <th>Tax</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="etsyResultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-success d-none" id="etsyImportBtn" onclick="importSelectedEtsyReceipts()">
+          Import Selected
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Platform fee rates ────────────────────────────────────────────
 const FEE_RATES = { Etsy: 0.065, eBay: 0.1325, Facebook: 0.10, Other: 0 };
@@ -535,5 +586,135 @@ document.getElementById('screenshotInput').addEventListener('change', function (
       toast.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Upload failed. Please try again.';
     });
 });
+
+// ── Sync from Etsy ─────────────────────────────────────────────────
+let etsyReceipts = [];
+
+function skuOptionsHtml(selectedSku) {
+  const opts = ['<option value="">Select…</option>'];
+  Object.values(PRODUCTS_BY_SKU).forEach(p => {
+    const sel = p.code === selectedSku ? 'selected' : '';
+    opts.push(`<option value="${p.code}" ${sel}>${p.code}</option>`);
+  });
+  if (selectedSku && !PRODUCTS_BY_SKU[selectedSku]) {
+    opts.push(`<option value="${selectedSku}" selected>${selectedSku} (not in Products)</option>`);
+  }
+  return opts.join('');
+}
+
+function fetchEtsyReceipts() {
+  const monthVal = document.getElementById('etsySyncMonth').value; // "YYYY-MM"
+  const msg = document.getElementById('etsySyncMsg');
+  const wrapper = document.getElementById('etsyResultsWrapper');
+  const importBtn = document.getElementById('etsyImportBtn');
+  if (!monthVal) {
+    msg.innerHTML = '<div class="alert alert-warning">Pick a month first.</div>';
+    return;
+  }
+  const [year, month] = monthVal.split('-');
+
+  msg.innerHTML = '<div class="alert alert-info"><span class="spinner-border spinner-border-sm me-2"></span>Fetching receipts from Etsy…</div>';
+  wrapper.classList.add('d-none');
+  importBtn.classList.add('d-none');
+
+  fetch(`/orders/etsy-sync?year=${year}&month=${parseInt(month, 10)}`)
+    .then(r => r.json().then(data => ({ ok: r.ok, data })))
+    .then(({ ok, data }) => {
+      if (!ok) throw new Error(data.error || 'Failed to fetch Etsy receipts.');
+      etsyReceipts = data.receipts;
+      renderEtsyReceipts();
+      msg.innerHTML = etsyReceipts.length
+        ? `<div class="alert alert-success">Found ${etsyReceipts.length} receipt(s).</div>`
+        : '<div class="alert alert-secondary">No receipts found for that month.</div>';
+      if (etsyReceipts.length) {
+        wrapper.classList.remove('d-none');
+        importBtn.classList.remove('d-none');
+      }
+    })
+    .catch(err => {
+      msg.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+    });
+}
+
+function renderEtsyReceipts() {
+  const tbody = document.getElementById('etsyResultsBody');
+  tbody.innerHTML = etsyReceipts.map((r, i) => {
+    const itemsLabel = r.multi_item
+      ? `${r.line_items.length} items <span class="badge bg-warning text-dark">multi-item</span>`
+      : (r.source || '');
+    return `
+      <tr>
+        <td><input type="checkbox" class="etsy-row-check" data-idx="${i}" ${r.already_imported ? 'disabled' : ''}></td>
+        <td>${r.order_no} ${r.already_imported ? '<span class="badge bg-secondary">Already imported</span>' : ''}</td>
+        <td>${r.order_date || ''}</td>
+        <td>${itemsLabel}</td>
+        <td><select class="form-select form-select-sm" id="etsySku${i}">${skuOptionsHtml(r.sku)}</select></td>
+        <td><input type="number" class="form-control form-control-sm" id="etsyQty${i}" value="${r.qty}" min="1" style="width:70px"></td>
+        <td><input type="number" step="0.01" class="form-control form-control-sm" id="etsyAmount${i}" value="${r.order_amount}" style="width:90px"></td>
+        <td><input type="number" step="0.01" class="form-control form-control-sm" id="etsyTax${i}" value="${r.sales_tax}" style="width:80px"></td>
+        <td id="etsyStatus${i}"></td>
+      </tr>`;
+  }).join('');
+}
+
+function toggleAllEtsyRows(checked) {
+  document.querySelectorAll('.etsy-row-check:not(:disabled)').forEach(cb => cb.checked = checked);
+}
+
+function importSelectedEtsyReceipts() {
+  const checked = [...document.querySelectorAll('.etsy-row-check:checked')];
+  if (!checked.length) {
+    alert('Select at least one receipt to import.');
+    return;
+  }
+
+  const importBtn = document.getElementById('etsyImportBtn');
+  importBtn.disabled = true;
+
+  const imports = checked.map(cb => {
+    const i = cb.dataset.idx;
+    const receipt = etsyReceipts[i];
+    const statusCell = document.getElementById(`etsyStatus${i}`);
+    const sku = document.getElementById(`etsySku${i}`).value;
+    const amount = parseFloat(document.getElementById(`etsyAmount${i}`).value) || 0;
+    const order = {
+      order_no: receipt.order_no,
+      order_date: receipt.order_date,
+      qty: parseInt(document.getElementById(`etsyQty${i}`).value, 10) || 1,
+      sku: sku || null,
+      color: (PRODUCTS_BY_SKU[sku] && PRODUCTS_BY_SKU[sku].color) || '',
+      source: receipt.source || '',
+      platform: 'Etsy',
+      order_amount: amount,
+      sales_tax: parseFloat(document.getElementById(`etsyTax${i}`).value) || 0,
+      cost_of_goods: 0,
+      shipping_cost: 0,
+      platform_fee: Math.round(amount * FEE_RATES.Etsy * 100) / 100,
+      comments: receipt.multi_item ? 'Multi-item Etsy receipt — review line items' : ''
+    };
+
+    statusCell.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    return fetch('/orders/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order)
+    })
+      .then(r => r.json().then(data => ({ ok: r.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok) throw new Error(data.error || 'Import failed');
+        statusCell.innerHTML = '<i class="bi bi-check-circle text-success"></i>';
+        cb.disabled = true;
+        cb.checked = false;
+      })
+      .catch(err => {
+        statusCell.innerHTML = `<span class="text-danger small">${err.message}</span>`;
+      });
+  });
+
+  Promise.allSettled(imports).then(() => {
+    importBtn.disabled = false;
+    setTimeout(() => location.reload(), 1200);
+  });
+}
 </script>
 {% endblock %}

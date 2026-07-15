@@ -3,7 +3,7 @@ from flask import request, jsonify
 from products import get_all_products, add_new_product, update_product_active, update_product, delete_product
 from shipments import get_all_shipments_header, get_all_payments, get_payments_by_shipment_header_id, get_shipment_by_header_id, add_shipment_header, add_new_shipment_detail, bulk_add_shipment_details, get_shipment_details, add_new_payment, edit_shipment_detail, edit_payment, get_invoices_by_shipment_header_id, add_new_invoice, edit_invoice, delete_invoice, delete_payment, edit_shipment_header
 from orders import get_orders, insert_order, get_order_by_no, update_order, get_monthly_summary
-from etsy import get_receipt
+from etsy import get_receipt, get_receipts_for_month
 from api_models import Receipt
 from suppliers import get_all_suppliers, add_new_supplier, update_supplier
 from inventory import get_inventory
@@ -23,6 +23,19 @@ def orders_monthly_summary():
 def get_etsy_receipt(receipt_id):
     etsy_receipt =  get_receipt(receipt_id)
     return jsonify(etsy_receipt), 200
+
+# Route to fetch a month's Etsy receipts (simplified, for order import review)
+@app.route('/etsy/receipts', methods=['GET'])
+def list_etsy_receipts():
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    if not year or not month:
+        return jsonify({"error": "year and month query params are required"}), 400
+    try:
+        receipts = get_receipts_for_month(year, month)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
+    return jsonify(receipts), 200
 
 # Route to get an order by order_no
 @app.route('/orders/<order_no>', methods=['GET'])
