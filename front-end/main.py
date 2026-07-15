@@ -421,6 +421,43 @@ def orders_monthly_summary():
     except Exception as e:
         return {"error": str(e)}, 500
 
+# Fetch a month's Etsy receipts for review, flagging ones already imported
+@app.route('/orders/etsy-sync', methods=['GET'])
+def orders_etsy_sync():
+    year = request.args.get('year')
+    month = request.args.get('month')
+    if not year or not month:
+        return {"error": "year and month are required"}, 400
+
+    try:
+        response = requests.get(
+            f"{sales_manager_api_url}/etsy/receipts",
+            params={"year": year, "month": month}
+        )
+        if not response.ok:
+            return response.json(), response.status_code
+        receipts = response.json()
+
+        orders_response = requests.get(f"{sales_manager_api_url}/orders")
+        orders_response.raise_for_status()
+        existing_order_nos = {o['order_no'] for o in orders_response.json()}
+
+        for r in receipts:
+            r['already_imported'] = r['order_no'] in existing_order_nos
+
+        return {"receipts": receipts}, 200
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+# Import a single reviewed Etsy order into the orders table
+@app.route('/orders/import', methods=['POST'])
+def orders_import():
+    try:
+        response = requests.post(f"{sales_manager_api_url}/orders", json=request.get_json())
+        return response.json(), response.status_code
+    except Exception as e:
+        return {"error": str(e)}, 500
+
 # Route to add a new order
 @app.route('/add_order', methods=['POST'])
 def add_order():
