@@ -1,0 +1,37 @@
+sales_manager DB - Restore Instructions
+========================================
+Backup file: sales_manager_20260812_080010.dump
+Backup date: 2026-08-12
+
+PREREQUISITES
+-------------
+- Install PostgreSQL 18
+- Copy the .dump file to the new machine
+
+STEP 1 - Create user and database
+----------------------------------
+Run as 'postgres' superuser in psql or pgAdmin:
+
+    CREATE USER agent WITH PASSWORD 'DanFay29$1';
+    CREATE DATABASE sales_manager OWNER agent;
+
+STEP 2 - Restore the backup
+-----------------------------
+Run in PowerShell (update the path to the .dump file):
+
+    & "C:\Program Files\PostgreSQL\18\bin\pg_restore.exe" `
+      -h localhost -p 5432 -U agent `
+      -d sales_manager `
+      --no-owner --role=agent `
+      "path\to\sales_manager_20260812_080010.dump"
+
+STEP 3 - Set .env
+------------------
+    DATABASE_URL=postgresql://agent:DanFay29$1@localhost:5432/sales_manager
+
+NOTES
+-----
+- The .dump file is in custom format - use pg_restore, NOT psql to restore it
+- If permission errors occur, run the restore as the 'postgres' superuser
+- Default port on a fresh PostgreSQL install is 5432
+- Only change the port in .env if your setup uses a different port
