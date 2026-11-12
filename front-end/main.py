@@ -231,7 +231,11 @@ def submit_shipment():
         if response.status_code == 201:
             flash('Shipment added successfully!')
         else:
-            flash('Failed to add shipment.')
+            try:
+                reason = response.json().get('message')
+            except Exception:
+                reason = None
+            flash(f'Failed to add shipment: {reason}' if reason else 'Failed to add shipment.')
     except Exception as e:
         print(f"Error posting shipment: {e}")
         flash('Failed to add shipment.')

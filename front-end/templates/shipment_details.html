@@ -599,6 +599,15 @@
         ({{ active_products | tojson }}).map(p => [p.code, p])
     );
 
+    // Turn a failed fetch Response into the server's validation message (HTML-escaped)
+    function apiError(err, fallback) {
+        const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        if (err && typeof err.json === 'function') {
+            return err.json().then(b => esc((b && b.message) || fallback)).catch(() => esc(fallback));
+        }
+        return Promise.resolve(esc(fallback));
+    }
+
     function showMsg(elId, text, type) {
         const el = document.getElementById(elId);
         if (el) el.innerHTML = `<div class="alert alert-${type} py-1 mb-0 small">${text}</div>`;
@@ -638,7 +647,7 @@
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { showMsg('editShipmentHeaderMsg', 'Shipment updated!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('editShipmentHeaderMsg', 'Error updating shipment.', 'danger'));
+        .catch(e => apiError(e, 'Error updating shipment.').then(m => showMsg('editShipmentHeaderMsg', m, 'danger')));
     });
 
     // Bulk Upload Details
@@ -664,7 +673,7 @@
             showMsg('bulkUploadMsg', msg, result.errors.length ? 'warning' : 'success');
             setTimeout(() => location.reload(), result.unmatched_skus.length || result.errors.length ? 2500 : 900);
         })
-        .catch(() => showMsg('bulkUploadMsg', 'Error uploading CSV.', 'danger'));
+        .catch(e => apiError(e, 'Error uploading CSV.').then(m => showMsg('bulkUploadMsg', m, 'danger')));
     });
 
     // Add Detail
@@ -684,7 +693,7 @@
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { showMsg('addDetailMsg', 'Detail added!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('addDetailMsg', 'Error saving detail.', 'danger'));
+        .catch(e => apiError(e, 'Error saving detail.').then(m => showMsg('addDetailMsg', m, 'danger')));
     });
 
     // Edit Detail
@@ -705,7 +714,7 @@
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { showMsg('editDetailMsg', 'Detail updated!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('editDetailMsg', 'Error updating detail.', 'danger'));
+        .catch(e => apiError(e, 'Error updating detail.').then(m => showMsg('editDetailMsg', m, 'danger')));
     });
 
     // Add Invoice
@@ -725,7 +734,7 @@
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { showMsg('addInvoiceMsg', 'Invoice added!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('addInvoiceMsg', 'Error saving invoice.', 'danger'));
+        .catch(e => apiError(e, 'Error saving invoice.').then(m => showMsg('addInvoiceMsg', m, 'danger')));
     });
 
     // Edit Invoice
@@ -746,7 +755,7 @@
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { showMsg('editInvoiceMsg', 'Invoice updated!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('editInvoiceMsg', 'Error updating invoice.', 'danger'));
+        .catch(e => apiError(e, 'Error updating invoice.').then(m => showMsg('editInvoiceMsg', m, 'danger')));
     });
 
     // Add Payment
@@ -766,7 +775,7 @@
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { showMsg('addPaymentMsg', 'Payment added!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('addPaymentMsg', 'Error saving payment.', 'danger'));
+        .catch(e => apiError(e, 'Error saving payment.').then(m => showMsg('addPaymentMsg', m, 'danger')));
     });
 
     // Edit Payment
@@ -787,7 +796,7 @@
         })
         .then(r => { if (!r.ok) throw r; return r.json(); })
         .then(() => { showMsg('editPaymentMsg', 'Payment updated!', 'success'); setTimeout(() => location.reload(), 700); })
-        .catch(() => showMsg('editPaymentMsg', 'Error updating payment.', 'danger'));
+        .catch(e => apiError(e, 'Error updating payment.').then(m => showMsg('editPaymentMsg', m, 'danger')));
     });
 
     function openEditDetailModal(id, description, sku, quantity, unitPrice, landedCost, comments) {
@@ -837,17 +846,17 @@
     }
 
     function deleteInvoice(id) {
-        if (!confirm('Delete this invoice? Any payments linked to it will become unlinked.')) return;
+        if (!confirm('Delete this invoice? (Not allowed while payments are recorded against it.)')) return;
         fetch(`/shipments/${shipmentId}/invoices/${id}`, { method: 'DELETE' })
             .then(r => { if (!r.ok) throw r; location.reload(); })
-            .catch(() => alert('Error deleting invoice.'));
+            .catch(e => apiError(e, 'Error deleting invoice.').then(m => alert(m.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'\"').replace(/&#39;/g,\"'\"))));
     }
 
     function deletePayment(id) {
         if (!confirm('Delete this payment?')) return;
         fetch(`/shipments/${shipmentId}/payments/${id}`, { method: 'DELETE' })
             .then(r => { if (!r.ok) throw r; location.reload(); })
-            .catch(() => alert('Error deleting payment.'));
+            .catch(e => apiError(e, 'Error deleting payment.').then(m => alert(m.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'\"').replace(/&#39;/g,\"'\"))));
     }
 </script>
 {% endblock %}

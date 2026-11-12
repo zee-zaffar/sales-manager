@@ -1,12 +1,25 @@
 from main import app
 from flask import request, jsonify
 from products import get_all_products, add_new_product, update_product_active, update_product, delete_product
-from shipments import get_all_shipments_header, get_all_payments, get_payments_by_shipment_header_id, get_shipment_by_header_id, add_shipment_header, add_new_shipment_detail, bulk_add_shipment_details, get_shipment_details, add_new_payment, edit_shipment_detail, edit_payment, get_invoices_by_shipment_header_id, add_new_invoice, edit_invoice, delete_invoice, delete_payment, edit_shipment_header
+from shipments import get_all_shipments_header, get_all_payments, get_payments_by_shipment_header_id, get_shipment_by_header_id, add_shipment_header, add_new_shipment_detail, bulk_add_shipment_details, get_shipment_details, add_new_payment, edit_shipment_detail, edit_payment, get_invoices_by_shipment_header_id, add_new_invoice, edit_invoice, delete_invoice, delete_payment, edit_shipment_header, create_shipment_with_details, ApiError
+from sqlalchemy.exc import IntegrityError
+from main import db
 from orders import get_orders, insert_order, get_order_by_no, update_order, get_monthly_summary
 from etsy import get_receipt, get_receipts_for_month
 from api_models import Receipt
 from suppliers import get_all_suppliers, add_new_supplier, update_supplier
 from inventory import get_inventory
+
+@app.errorhandler(ApiError)
+def handle_api_error(e):
+    db.session.rollback()
+    return jsonify({'error': e.error, 'message': e.message}), e.status
+
+@app.errorhandler(IntegrityError)
+def handle_integrity_error(e):
+    # Backstop for DB constraints (unique/check/foreign key) that slip past validation
+    db.session.rollback()
+    return jsonify({'error': 'Conflict', 'message': 'The change violates a data integrity rule: ' + str(e.orig).splitlines()[0]}), 409
 
 # Route to get all orders
 @app.route('/orders', methods=['GET'])
@@ -59,14 +72,8 @@ def get_shipments():
 #Add new shipment
 @app.route('/shipments', methods=['POST'])
 def add_new_shipment():
-    payload = request.json
-    shipment_header_id = shipment_header_id =  add_shipment_header(payload)
-    print ("New Shipment Header ID:", shipment_header_id)
-
-    # Loop through details and add each one
-    for shipment_detail in payload.get('Details'):
-        add_new_shipment_detail(shipment_header_id, shipment_detail)
-  
+    # Header + details are validated and saved as one transaction
+    shipment_header_id = create_shipment_with_details(request.get_json(silent=True))
     return jsonify({'id': shipment_header_id}), 201
 
 @app.route('/shipments/<int:shipment_header_id>', methods=['GET'])
@@ -107,7 +114,7 @@ def update_shipment_detail(header_id: int, detail_id: int):
     # Get the update data from request
     update_data = request.json
 
-    result, status_code = edit_shipment_detail(detail_id, update_data)
+    result, status_code = edit_shipment_detail(detail_id, update_data, header_id)
 
     return jsonify(result), status_code
 
@@ -135,14 +142,14 @@ def update_payment_route(header_id: int, payment_id: int):
     update_data = request.json
     
     # Call the update function
-    result, status_code = edit_payment(payment_id, update_data)
+    result, status_code = edit_payment(payment_id, update_data, header_id)
 
     return jsonify(result), status_code
 
 # Delete payment
 @app.route('/shipments/<int:header_id>/payments/<int:payment_id>', methods=['DELETE'])
 def delete_payment_route(header_id: int, payment_id: int):
-    result, status_code = delete_payment(payment_id)
+    result, status_code = delete_payment(payment_id, header_id)
     return jsonify(result), status_code
 
 #Get invoices for a shipment
@@ -161,13 +168,13 @@ def add_invoice(shipment_header_id: int):
 @app.route('/shipments/<int:header_id>/invoices/<int:invoice_id>', methods=['PUT'])
 def update_invoice_route(header_id: int, invoice_id: int):
     update_data = request.json
-    result, status_code = edit_invoice(invoice_id, update_data)
+    result, status_code = edit_invoice(invoice_id, update_data, header_id)
     return jsonify(result), status_code
 
 # Delete invoice
 @app.route('/shipments/<int:header_id>/invoices/<int:invoice_id>', methods=['DELETE'])
 def delete_invoice_route(header_id: int, invoice_id: int):
-    result, status_code = delete_invoice(invoice_id)
+    result, status_code = delete_invoice(invoice_id, header_id)
     return jsonify(result), status_code
 
 #Get all payments

@@ -1,16 +1,16 @@
 -- =============================================================
 -- Sales Manager – Sample Seed Data
--- Run after 01_create_tables.sql:
+-- Optional sample data. Run AFTER all migrations (install_db.py --seed does this):
 --   psql -U postgres -d sales_manager -f 02_seed_data.sql
 -- =============================================================
 
 -- Products
-INSERT INTO products (code, category, description, color, cost, comments) VALUES
-    ('ONX-RND-BLK', 'Coasters',    'Onyx Round Coaster',          'Black',  3.50, NULL),
-    ('ONX-SQR-GRN', 'Coasters',    'Onyx Square Coaster',         'Green',  3.75, NULL),
-    ('MRB-ORN-WHT', 'Ornaments',   'Marble Ornament',             'White',  5.00, NULL),
-    ('CHE-BOX-BRN', 'Boxes',       'Chess Storage Box',           'Brown', 12.00, 'Hinged lid'),
-    ('CHE-BOX-BLK', 'Boxes',       'Chess Storage Box',           'Black', 12.00, 'Hinged lid')
+INSERT INTO products (code, category, description, color, comments) VALUES
+    ('ONX-RND-BLK', 'Coasters',    'Onyx Round Coaster',          'Black', NULL),
+    ('ONX-SQR-GRN', 'Coasters',    'Onyx Square Coaster',         'Green', NULL),
+    ('MRB-ORN-WHT', 'Ornaments',   'Marble Ornament',             'White', NULL),
+    ('CHE-BOX-BRN', 'Boxes',       'Chess Storage Box',           'Brown', 'Hinged lid'),
+    ('CHE-BOX-BLK', 'Boxes',       'Chess Storage Box',           'Black', 'Hinged lid')
 ON CONFLICT (code) DO NOTHING;
 
 -- Orders
